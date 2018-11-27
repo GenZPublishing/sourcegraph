@@ -18,13 +18,9 @@ import { LocalStorageSubject } from '../util/LocalStorageSubject'
  * Creates the {@link PlatformContext} for the web app.
  */
 export function createPlatformContext(): PlatformContext {
-    // TODO!(sqs): clean up, remove redundant settingsCascade and model
-    const model = new BehaviorSubject<Model>(EMPTY_MODEL)
-
     const updatedSettings = new ReplaySubject<GQL.ISettingsCascade>(1)
-
     const context: PlatformContext = {
-        model,
+        model: new BehaviorSubject<Model>(EMPTY_MODEL),
         settings: merge(
             settingsRefreshes.pipe(
                 startWith(void 0),
