@@ -75,7 +75,7 @@ export function createExtensionHostClientConnection(
     )
     subscription.add(
         new ClientContext(connection, (updates: ContextValues) =>
-            services.context.context.next(applyContextUpdate(services.context.context.value, updates))
+            services.context.data.next(applyContextUpdate(services.context.data.value, updates))
         )
     )
     subscription.add(new ClientExtensions(connection, services.extensions))

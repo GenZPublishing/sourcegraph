@@ -9,12 +9,12 @@ export interface ContextService {
     /**
      * The context data.
      */
-    readonly context: Subscribable<Context> & { value: Context } & NextObserver<Context>
+    readonly data: Subscribable<Context> & { value: Context } & NextObserver<Context>
 }
 
 /** Create a {@link ContextService} instance. */
 export function createContextService(): ContextService {
     return {
-        context: new BehaviorSubject<Context>({}),
+        data: new BehaviorSubject<Context>({}),
     }
 }

@@ -4,6 +4,7 @@ import { SettingsEdit } from '../api/protocol/configuration'
 import { MessageTransports } from '../api/protocol/jsonrpc2/connection'
 import { GraphQLResult } from '../graphql/graphql'
 import * as GQL from '../graphql/schema'
+import { Settings, SettingsCascadeOrError } from '../settings/settings'
 
 /**
  * Platform-specific data and methods shared by multiple Sourcegraph components.
@@ -16,6 +17,11 @@ export interface PlatformContext {
      * An observable that emits whenever the environment changes.
      */
     readonly environment: Subscribable<Environment> & { value: Environment } & NextObserver<Environment>
+
+    /**
+     * Query the settings cascade.
+     */
+    querySettings<S extends Settings>(): Promise<SettingsCascadeOrError<S>>
 
     /**
      * Update the settings for the subject.

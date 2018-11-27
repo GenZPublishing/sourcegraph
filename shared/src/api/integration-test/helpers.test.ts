@@ -61,20 +61,7 @@ export async function integrationTestContext(): Promise<
         )
     )
 
-    // Ack all settings updates.
-    services.settings.updates.subscribe(({ resolve }) => resolve(Promise.resolve()))
-
     await (await extensionHost.__testAPI).internal.sync()
-
-    // Wait for client to be ready.
-    //
-    // await clientController.clientEntries
-    //     .pipe(
-    //         filter(entries => entries.length > 0),
-    //         first()
-    //     )
-    //     .toPromise()
-
     return {
         client,
         extensionHost: await extensionHost.__testAPI,

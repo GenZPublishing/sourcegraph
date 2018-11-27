@@ -1,6 +1,5 @@
-import { Subscribable } from 'rxjs'
+import { PlatformContext } from '../../platform/context'
 import { createContextService } from './context/contextService'
-import { Environment } from './environment'
 import { CommandRegistry } from './services/command'
 import { ContributionRegistry } from './services/contribution'
 import { TextDocumentDecorationProviderRegistry } from './services/decoration'
@@ -9,21 +8,21 @@ import { TextDocumentHoverProviderRegistry } from './services/hover'
 import { TextDocumentLocationProviderRegistry, TextDocumentReferencesProviderRegistry } from './services/location'
 import { NotificationsService } from './services/notifications'
 import { QueryTransformerRegistry } from './services/queryTransformer'
-import { SettingsService } from './services/settings'
+import { createSettingsService } from './services/settings'
 import { ViewProviderRegistry } from './services/view'
 
 /**
  * Services is a container for all services used by the client application.
  */
 export class Services {
-    constructor(private environment: Subscribable<Environment>) {}
+    constructor(private platformContext: PlatformContext) {}
 
     public readonly commands = new CommandRegistry()
     public readonly context = createContextService()
-    public readonly contribution = new ContributionRegistry(this.environment, this.context.context)
-    public readonly extensions = new ExtensionRegistry(this.environment)
+    public readonly contribution = new ContributionRegistry(this.platformContext.environment, this.context.data)
+    public readonly extensions = new ExtensionRegistry(this.platformContext.environment)
     public readonly notifications = new NotificationsService()
-    public readonly settings = new SettingsService()
+    public readonly settings = createSettingsService(this.platformContext)
     public readonly textDocumentDefinition = new TextDocumentLocationProviderRegistry()
     public readonly textDocumentImplementation = new TextDocumentLocationProviderRegistry()
     public readonly textDocumentReferences = new TextDocumentReferencesProviderRegistry()

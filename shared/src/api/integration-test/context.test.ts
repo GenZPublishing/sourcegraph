@@ -8,7 +8,7 @@ describe('Context (integration)', () => {
     describe('internal.updateContext', () => {
         it('updates context', async () => {
             const { services, extensionHost } = await integrationTestContext()
-            const values = collectSubscribableValues(from(services.context.context).pipe(distinctUntilChanged()))
+            const values = collectSubscribableValues(from(services.context.data).pipe(distinctUntilChanged()))
 
             extensionHost.internal.updateContext({ a: 1 })
             await extensionHost.internal.sync()

@@ -1,5 +1,6 @@
-import { Subject } from 'rxjs'
-import { PromiseCallback } from '../../util'
+import { BehaviorSubject, Subscribable } from 'rxjs'
+import { PlatformContext } from '../../../platform/context'
+import { isSettingsValid, Settings, SettingsCascadeOrError } from '../../../settings/settings'
 
 /**
  * A key path that refers to a location in a JSON document.
@@ -17,6 +18,55 @@ export interface SettingsUpdate {
     value: any
 }
 
-export class SettingsService {
-    public readonly updates = new Subject<SettingsUpdate & PromiseCallback<void>>()
+/**
+ * The settings service manages the settings cascade for the viewer.
+ *
+ * @template S The settings type.
+ */
+export interface SettingsService<S extends Settings = Settings> {
+    /**
+     * The settings cascade.
+     */
+    data: Subscribable<SettingsCascadeOrError<S>>
+
+    /**
+     * Update the settings for the settings subject with the highest precedence.
+     *
+     * @todo Support specifying which settings subject whose settings to update.
+     */
+    update(edit: SettingsUpdate): Promise<void>
+
+    /**
+     * Refresh the settings cascade.
+     *
+     * This should be called when the settings change by any means other than a call to
+     * {@link SettingsService#update}.
+     */
+    refresh(): Promise<void>
+}
+
+/**
+ * Create a {@link SettingsService} instance.
+ *
+ * @template S The settings type.
+ */
+export function createSettingsService<S extends Settings = Settings>({
+    querySettings,
+    updateSettings,
+}: Pick<PlatformContext, 'querySettings' | 'updateSettings'>): SettingsService<S> {
+    // TODO!(sqs): weird behavior if this is null when it's attempted to be used?
+    const data = new BehaviorSubject<SettingsCascadeOrError<S>>({ subjects: null, final: null })
+    return {
+        data,
+        update: async edit => {
+            const settings = data.value
+            if (!isSettingsValid(settings)) {
+                throw new Error('invalid settings')
+            }
+            const subject = settings.subjects[settings.subjects.length - 1]
+            await updateSettings(subject.subject.id, { edit })
+            data.next(await querySettings<S>())
+        },
+        refresh: async () => data.next(await querySettings<S>()),
+    }
 }
