@@ -13,7 +13,7 @@ import { PlatformContextProps } from '../../../shared/src/platform/context'
 import { SettingsCascadeProps } from '../../../shared/src/settings/settings'
 import { ErrorLike, isErrorLike } from '../../../shared/src/util/errors'
 import { HeroPage } from '../components/HeroPage'
-import { ExtensionsDocumentsProps } from '../extensions/environment/ExtensionsEnvironment'
+import { ExtensionsDocumentsProps } from '../extensions/ExtensionsProps'
 import { searchQueryForRepoRev } from '../search'
 import { queryUpdates } from '../search/input/QueryInput'
 import { GoToCodeHostAction } from './actions/GoToCodeHostAction'
@@ -152,7 +152,7 @@ export class RepoContainer extends React.Component<RepoContainerProps, RepoRevCo
             )
         )
 
-        // Update the Sourcegraph extensions environment to reflect the current workspace root.
+        // Update the Sourcegraph extensions model to reflect the current workspace root.
         this.subscriptions.add(
             this.revResolves
                 .pipe(
@@ -173,7 +173,7 @@ export class RepoContainer extends React.Component<RepoContainerProps, RepoRevCo
                 )
                 .subscribe()
         )
-        // Clear the Sourcegraph extensions environment's roots when navigating away.
+        // Clear the Sourcegraph extensions model's roots when navigating away.
         this.subscriptions.add(() => this.props.extensionsOnRootsChange(null))
     }
 

@@ -15,7 +15,7 @@ import { Search } from './api/search'
 import { ClientViews } from './api/views'
 import { ClientWindows } from './api/windows'
 import { applyContextUpdate } from './context/context'
-import { Environment } from './environment'
+import { Model } from './model'
 import { Services } from './services'
 import {
     MessageActionItem,
@@ -54,7 +54,7 @@ export interface ActivatedExtension {
 
 export function createExtensionHostClientConnection(
     connection: Connection,
-    environment: Subscribable<Environment> & { value: Environment },
+    model: Subscribable<Model> & { value: Model },
     services: Services
 ): ExtensionHostClientConnection {
     const subscription = new Subscription()
@@ -71,7 +71,7 @@ export function createExtensionHostClientConnection(
     subscription.add(
         new ClientWindows(
             connection,
-            from(environment).pipe(
+            from(model).pipe(
                 map(({ visibleTextDocuments }) => visibleTextDocuments),
                 distinctUntilChanged()
             ),
@@ -91,7 +91,7 @@ export function createExtensionHostClientConnection(
     subscription.add(
         new ClientDocuments(
             connection,
-            from(environment).pipe(
+            from(model).pipe(
                 map(({ visibleTextDocuments }) => visibleTextDocuments),
                 distinctUntilChanged()
             )
@@ -112,7 +112,7 @@ export function createExtensionHostClientConnection(
     subscription.add(
         new ClientRoots(
             connection,
-            from(environment).pipe(
+            from(model).pipe(
                 map(({ roots }) => roots),
                 distinctUntilChanged()
             )

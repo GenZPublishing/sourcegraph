@@ -16,7 +16,7 @@ import { queryGraphQL } from '../../backend/graphql'
 import { HeroPage } from '../../components/HeroPage'
 import { PageTitle } from '../../components/PageTitle'
 import { isDiscussionsEnabled } from '../../discussions'
-import { ExtensionsDocumentsProps } from '../../extensions/environment/ExtensionsEnvironment'
+import { ExtensionsDocumentsProps } from '../../extensions/ExtensionsProps'
 import { eventLogger } from '../../tracking/eventLogger'
 import { memoizeObservable } from '../../util/memoize'
 import { lprToRange, parseHash } from '../../util/url'
@@ -160,7 +160,7 @@ export class BlobPage extends React.PureComponent<Props, State> {
                 .subscribe(blobOrError => this.setState({ blobOrError }), err => console.error(err))
         )
 
-        // Clear the Sourcegraph extensions environment's component when the blob is no longer shown.
+        // Clear the Sourcegraph extensions model's component when the blob is no longer shown.
         this.subscriptions.add(() => this.props.extensionsOnVisibleTextDocumentsChange(null))
 
         this.propsUpdates.next(this.props)

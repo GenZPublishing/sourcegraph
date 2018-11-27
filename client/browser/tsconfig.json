@@ -18,7 +18,9 @@
     "scripts/**/*.ts",
     "*.ts",
     "../../shared/src/api/client/services/extensionsService.test.ts",
-    "../../shared/src/api/client/services/extensionsService.ts"
+    "../../shared/src/api/client/services/extensionsService.ts",, "../../web/src/extensions/ExtensionsProps.tsx"
+    "../../shared/src/api/client/model.ts",
+    "../../web/src/extensions/environment/ExtensionsProps.tsx"
   ],
   "exclude": ["../../node_modules", "./build/**/*", "./*.safariextension"]
 }

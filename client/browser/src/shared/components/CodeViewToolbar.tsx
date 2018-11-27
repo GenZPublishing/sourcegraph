@@ -46,7 +46,7 @@ export class CodeViewToolbar extends React.Component<CodeViewToolbarProps, CodeV
     public componentDidMount(): void {
         if (this.props.platformContext) {
             this.subscriptions.add(
-                from(this.props.platformContext.environment)
+                from(this.props.platformContext.model)
                     .pipe(map(({ configuration }) => configuration))
                     .subscribe(settingsCascade => this.setState({ settingsCascade }), err => console.error(err))
             )

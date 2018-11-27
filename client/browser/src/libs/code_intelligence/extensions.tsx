@@ -10,7 +10,7 @@ import { Notifications } from '../../../../../shared/src/notifications/Notificat
 
 import { DOMFunctions } from '@sourcegraph/codeintellify'
 import * as H from 'history'
-import { Environment } from '../../../../../shared/src/api/client/environment'
+import { Model } from '../../../../../shared/src/api/client/model'
 import {
     decorationAttachmentStyleForTheme,
     decorationStyleForTheme,
@@ -35,18 +35,18 @@ function createControllers(context: PlatformContext): Controllers {
 
     combineLatest(
         viewerConfiguredExtensions(platformContext),
-        from(platformContext.environment).pipe(
+        from(platformContext.model).pipe(
             map(({ configuration }) => configuration),
             filter(isSettingsValid)
         ),
-        from(context.environment)
+        from(context.model)
     ).subscribe(([extensions, configuration, { roots, visibleTextDocuments }]) => {
         // TODO!2(sqs): fix weird subscription-in-subscription
         //
-        // from(extensionsController.environment)
+        // from(extensionsController.model)
         //     .pipe(take(1))
         //     .subscribe(({ context }) => {
-        //         extensionsController.setEnvironment({
+        //         extensionsController.setModel({
         //             roots,
         //             extensions,
         //             configuration,
@@ -64,9 +64,9 @@ function createControllers(context: PlatformContext): Controllers {
  */
 export function initializeExtensions(
     getCommandPaletteMount: MountGetter,
-    environment: Observable<Pick<Environment, 'roots' | 'visibleTextDocuments'>>
+    model: Observable<Pick<Model, 'roots' | 'visibleTextDocuments'>>
 ): Controllers {
-    const { platformContext, extensionsController } = createControllers(environment as any) // TODO!2(sqs): remove "as any" cast
+    const { platformContext, extensionsController } = createControllers(model as any) // TODO!2(sqs): remove "as any" cast
     const history = H.createBrowserHistory()
 
     render(

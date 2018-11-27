@@ -28,7 +28,7 @@ export class ClientWindows implements ClientWindowsAPI {
 
     constructor(
         connection: Connection,
-        environmentTextDocuments: Observable<TextDocumentItem[] | null>,
+        modelTextDocuments: Observable<TextDocumentItem[] | null>,
         /** Called when the client receives a window/showMessage notification. */
         private showMessage: (params: ShowMessageParams) => void,
         /**
@@ -45,7 +45,7 @@ export class ClientWindows implements ClientWindowsAPI {
         this.proxy = createProxyAndHandleRequests('windows', connection, this)
 
         this.subscriptions.add(
-            environmentTextDocuments.subscribe(textDocuments => {
+            modelTextDocuments.subscribe(textDocuments => {
                 this.proxy.$acceptWindowData(
                     textDocuments ? textDocuments.map(textDocument => ({ visibleTextDocument: textDocument.uri })) : []
                 )

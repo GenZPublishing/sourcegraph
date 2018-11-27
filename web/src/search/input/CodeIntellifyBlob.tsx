@@ -19,7 +19,7 @@ import { getModeFromPath } from '../../../../shared/src/languages'
 import { ErrorLike, isErrorLike } from '../../../../shared/src/util/errors'
 import { getHover, getJumpURL } from '../../backend/features'
 import { LSPTextDocumentPositionParams } from '../../backend/lsp'
-import { ExtensionsDocumentsProps } from '../../extensions/environment/ExtensionsEnvironment'
+import { ExtensionsDocumentsProps } from '../../extensions/ExtensionsProps'
 import { fetchBlob } from '../../repo/blob/BlobPage'
 import { isDefined, propertyIsDefined } from '../../util/types'
 

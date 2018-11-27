@@ -1,7 +1,7 @@
 import { BehaviorSubject, merge, Observable, ReplaySubject } from 'rxjs'
 import { map, startWith, switchMap } from 'rxjs/operators'
 import ExtensionHostWorker from 'worker-loader!../../../shared/src/api/extension/main.worker.ts'
-import { EMPTY_ENVIRONMENT, Environment } from '../../../shared/src/api/client/environment'
+import { EMPTY_MODEL, Model } from '../../../shared/src/api/client/model'
 import { createWebWorkerMessageTransports } from '../../../shared/src/api/protocol/jsonrpc2/transports/webWorker'
 import { gql } from '../../../shared/src/graphql/graphql'
 import * as GQL from '../../../shared/src/graphql/schema'
@@ -18,13 +18,13 @@ import { LocalStorageSubject } from '../util/LocalStorageSubject'
  * Creates the {@link PlatformContext} for the web app.
  */
 export function createPlatformContext(): PlatformContext {
-    // TODO!(sqs): clean up, remove redundant settingsCascade and environment
-    const environment = new BehaviorSubject<Environment>(EMPTY_ENVIRONMENT)
+    // TODO!(sqs): clean up, remove redundant settingsCascade and model
+    const model = new BehaviorSubject<Model>(EMPTY_MODEL)
 
     const updatedSettings = new ReplaySubject<GQL.ISettingsCascade>(1)
 
     const context: PlatformContext = {
-        environment,
+        model,
         settings: merge(
             settingsRefreshes.pipe(
                 startWith(void 0),

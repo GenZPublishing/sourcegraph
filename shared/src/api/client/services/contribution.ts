@@ -21,7 +21,7 @@ import { flatten, isEqual } from '../../util'
 import { Context, getComputedContextProperty } from '../context/context'
 import { ComputedContext, evaluate, evaluateTemplate } from '../context/expr/evaluator'
 import { TEMPLATE_BEGIN } from '../context/expr/lexer'
-import { Environment } from '../environment'
+import { Model } from '../model'
 import { TextDocumentItem } from '../types/textDocument'
 import { SettingsService } from './settings'
 
@@ -51,7 +51,7 @@ export class ContributionRegistry {
     private _entries = new BehaviorSubject<ContributionsEntry[]>([])
 
     public constructor(
-        private environment: Subscribable<Environment>,
+        private model: Subscribable<Model>,
         private settingsService: Pick<SettingsService, 'data'>,
         private context: Subscribable<Context>
     ) {}
@@ -86,8 +86,8 @@ export class ContributionRegistry {
     }
 
     /**
-     * Returns an observable that emits all contributions (merged) evaluated in the current
-     * environment (with the optional scope). It emits whenever there is any change.
+     * Returns an observable that emits all contributions (merged) evaluated in the current model (with the
+     * optional scope). It emits whenever there is any change.
      */
     public getContributions(scope?: TextDocumentItem): Observable<Contributions> {
         return this.getContributionsFromEntries(this._entries, scope)
@@ -107,14 +107,14 @@ export class ContributionRegistry {
                     )
                 )
             ),
-            this.environment,
+            this.model,
             this.settingsService.data,
             this.context
         ).pipe(
-            map(([multiContributions, environment, settings, context]) => {
+            map(([multiContributions, model, settings, context]) => {
                 // TODO(sqs): use {@link ContextService#observeValue}
                 const computedContext = {
-                    get: (key: string) => getComputedContextProperty(environment, settings, context, key, scope),
+                    get: (key: string) => getComputedContextProperty(model, settings, context, key, scope),
                 }
                 return flatten(multiContributions).map(contributions => {
                     try {

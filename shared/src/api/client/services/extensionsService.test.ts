@@ -3,7 +3,7 @@ import { from, of, Subscribable } from 'rxjs'
 import { TestScheduler } from 'rxjs/testing'
 import { ConfiguredExtension } from '../../../extensions/extension'
 import { EMPTY_SETTINGS_CASCADE, SettingsCascadeOrError } from '../../../settings/settings'
-import { Environment } from '../environment'
+import { Model } from '../model'
 import { ExecutableExtension, ExtensionsService } from './extensionsService'
 import { SettingsService } from './settings'
 
@@ -12,11 +12,11 @@ const scheduler = () => new TestScheduler((a, b) => assert.deepStrictEqual(a, b)
 class TestExtensionsService extends ExtensionsService {
     constructor(
         private mockConfiguredExtensions: ConfiguredExtension[],
-        environment: Subscribable<Pick<Environment, 'visibleTextDocuments'>>,
+        model: Subscribable<Pick<Model, 'visibleTextDocuments'>>,
         settingsService: Pick<SettingsService, 'data'>,
         extensionActivationFilter: (
             enabledExtensions: ConfiguredExtension[],
-            environment: Pick<Environment, 'visibleTextDocuments'>
+            model: Pick<Model, 'visibleTextDocuments'>
         ) => ConfiguredExtension[]
     ) {
         super(
@@ -25,7 +25,7 @@ class TestExtensionsService extends ExtensionsService {
                     throw new Error('not implemented')
                 },
             },
-            environment,
+            model,
             settingsService,
             extensionActivationFilter
         )
@@ -43,7 +43,7 @@ describe('activeExtensions', () => {
                 from(
                     new TestExtensionsService(
                         [],
-                        cold<Pick<Environment, 'visibleTextDocuments'>>('-a-|', {
+                        cold<Pick<Model, 'visibleTextDocuments'>>('-a-|', {
                             a: { visibleTextDocuments: [] },
                         }),
                         { data: cold<SettingsCascadeOrError>('-a-|', { a: EMPTY_SETTINGS_CASCADE }) },
@@ -64,7 +64,7 @@ describe('activeExtensions', () => {
                             { id: 'x', manifest: { url: 'u', activationEvents: [] }, rawManifest: null },
                             { id: 'y', manifest: { url: 'u', activationEvents: [] }, rawManifest: null },
                         ],
-                        cold<Pick<Environment, 'visibleTextDocuments'>>('-a-b-|', {
+                        cold<Pick<Model, 'visibleTextDocuments'>>('-a-b-|', {
                             a: { visibleTextDocuments: [{ languageId: 'x', text: '', uri: '' }] },
                             b: { visibleTextDocuments: [{ languageId: 'y', text: '', uri: '' }] },
                         }),

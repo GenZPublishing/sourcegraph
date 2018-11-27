@@ -16,7 +16,7 @@ import { ViewProviderRegistry } from './services/view'
  */
 export class Services {
     constructor(
-        private platformContext: Pick<PlatformContext, 'environment' | 'settings' | 'updateSettings' | 'queryGraphQL'>
+        private platformContext: Pick<PlatformContext, 'model' | 'settings' | 'updateSettings' | 'queryGraphQL'>
     ) {}
 
     public readonly commands = new CommandRegistry()
@@ -24,15 +24,11 @@ export class Services {
     public readonly notifications = new NotificationsService()
     public readonly settings = createSettingsService(this.platformContext)
     public readonly contribution = new ContributionRegistry(
-        this.platformContext.environment,
+        this.platformContext.model,
         this.settings,
         this.context.data
     )
-    public readonly extensions = new ExtensionsService(
-        this.platformContext,
-        this.platformContext.environment,
-        this.settings
-    )
+    public readonly extensions = new ExtensionsService(this.platformContext, this.platformContext.model, this.settings)
     public readonly textDocumentDefinition = new TextDocumentLocationProviderRegistry()
     public readonly textDocumentImplementation = new TextDocumentLocationProviderRegistry()
     public readonly textDocumentReferences = new TextDocumentReferencesProviderRegistry()

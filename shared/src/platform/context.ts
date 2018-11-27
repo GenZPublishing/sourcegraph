@@ -1,5 +1,5 @@
 import { NextObserver, Observable, Subscribable } from 'rxjs'
-import { Environment } from '../api/client/environment'
+import { Model } from '../api/client/model'
 import { SettingsEdit } from '../api/client/services/settings'
 import { MessageTransports } from '../api/protocol/jsonrpc2/connection'
 import { GraphQLResult } from '../graphql/graphql'
@@ -14,11 +14,11 @@ import { Settings, SettingsCascadeOrError } from '../settings/settings'
  */
 export interface PlatformContext {
     /**
-     * An observable that emits whenever the environment changes.
+     * An observable that emits whenever the model changes.
      *
-     * TODO!(sqs): remove {value:Environment}, currently only used in SourcegraphWebApp.tsx.
+     * TODO!(sqs): remove {value:Model}, currently only used in SourcegraphWebApp.tsx.
      */
-    readonly environment: Subscribable<Environment> & { value: Environment } & NextObserver<Environment>
+    readonly model: Subscribable<Model> & { value: Model } & NextObserver<Model>
 
     /**
      * An observable that emits the settings cascade upon subscription and whenever it changes (including when it

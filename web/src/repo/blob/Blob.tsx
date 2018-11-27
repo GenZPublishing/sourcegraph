@@ -23,7 +23,7 @@ import { asError, ErrorLike, isErrorLike } from '../../../../shared/src/util/err
 import { getDecorations, getHover, getJumpURL, ModeSpec } from '../../backend/features'
 import { LSPSelector, LSPTextDocumentPositionParams } from '../../backend/lsp'
 import { isDiscussionsEnabled } from '../../discussions'
-import { ExtensionsDocumentsProps } from '../../extensions/environment/ExtensionsEnvironment'
+import { ExtensionsDocumentsProps } from '../../extensions/ExtensionsProps'
 import { eventLogger } from '../../tracking/eventLogger'
 import { isDefined, propertyIsDefined } from '../../util/types'
 import { LineOrPositionOrRange, parseHash, toPositionOrRangeHash } from '../../util/url'
@@ -287,7 +287,7 @@ export class Blob extends React.Component<BlobProps, BlobState> {
             share()
         )
 
-        // Update the Sourcegraph extensions environment to reflect the current file.
+        // Update the Sourcegraph extensions model to reflect the current file.
         this.subscriptions.add(
             combineLatest(modelChanges, locationPositions).subscribe(([model, pos]) => {
                 this.props.extensionsOnVisibleTextDocumentsChange([

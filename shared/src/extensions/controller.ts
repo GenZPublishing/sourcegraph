@@ -49,23 +49,18 @@ export interface Controller extends Unsubscribable {
  */
 export interface ExtensionsControllerProps {
     /**
-     * The client, which is used to communicate with the extensions and manages extensions based on the
-     * environment.
+     * The client, which is used to communicate with and manage extensions.
      */
     extensionsController: Controller
 }
 
 /**
- * Creates the controller, which handles all communication between the client application and
- * extensions.
+ * Creates the controller, which handles all communication between the client application and extensions.
  *
- * There should only be a single client for the entire client application. The client's
- * environment represents all of the client application state that the client needs to know.
+ * There should only be a single controller for the entire client application. The controller's model represents
+ * all of the client application state that the client needs to know.
  *
- * It receives state updates via calls to the setEnvironment method. It provides functionality and
- * results via its services and the showMessages, etc., observables.
- *
- * TODO!(sqs): move environment out of here
+ * TODO!(sqs): move model out of here
  */
 export function createController(context: PlatformContext): Controller {
     const subscriptions = new Subscription()
@@ -92,7 +87,7 @@ export function createController(context: PlatformContext): Controller {
         map(([connection]) => connection),
         distinctUntilChanged()
     )
-    const client = createExtensionHostClient(context.environment, services, extensionHostConnection)
+    const client = createExtensionHostClient(context.model, services, extensionHostConnection)
     subscriptions.add(client)
 
     const notifications = new Subject<Notification>()
@@ -140,10 +135,10 @@ export function createController(context: PlatformContext): Controller {
     // Debug helpers.
     const DEBUG = true
     if (DEBUG) {
-        // Debug helper: log environment changes.
-        const LOG_ENVIRONMENT = false
-        if (LOG_ENVIRONMENT) {
-            subscriptions.add(context.environment.subscribe(environment => log('info', 'env', environment)))
+        // Debug helper: log model changes.
+        const LOG_MODEL = false
+        if (LOG_MODEL) {
+            subscriptions.add(context.model.subscribe(model => log('info', 'model', model)))
         }
 
         // Debug helpers: e.g., just run `sx` in devtools to get a reference to this client. (If multiple
@@ -151,7 +146,7 @@ export function createController(context: PlatformContext): Controller {
         ;(window as any).sx = client
         // This value is synchronously available because observable has an underlying
         // BehaviorSubject source.
-        subscriptions.add(context.environment.subscribe(v => ((window as any).sxenv = v)))
+        subscriptions.add(context.model.subscribe(v => ((window as any).sxmodel = v)))
     }
 
     return {

@@ -7,7 +7,7 @@
   "include": [
     "**/*",
     "../shared/src/api/client/services/extensionsService.test.ts",
-    "../shared/src/api/client/services/extensionsService.ts"
+    "../shared/src/api/client/services/extensionsService.ts", "../shared/src/api/client/model.ts"
   ],
   "exclude": ["../node_modules"]
 }

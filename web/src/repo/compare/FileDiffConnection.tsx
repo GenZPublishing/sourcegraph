@@ -4,7 +4,7 @@ import * as GQL from '../../../../shared/src/graphql/schema'
 import { getModeFromPath } from '../../../../shared/src/languages'
 import { ErrorLike, isErrorLike } from '../../../../shared/src/util/errors'
 import { Connection, FilteredConnection } from '../../components/FilteredConnection'
-import { ExtensionsDocumentsProps } from '../../extensions/environment/ExtensionsEnvironment'
+import { ExtensionsDocumentsProps } from '../../extensions/ExtensionsProps'
 import { FileDiffNodeProps } from './FileDiffNode'
 
 class FilteredFileDiffConnection extends FilteredConnection<

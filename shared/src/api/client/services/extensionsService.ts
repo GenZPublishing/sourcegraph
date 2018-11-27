@@ -9,7 +9,7 @@ import { viewerConfiguredExtensions } from '../../../extensions/helpers'
 import { PlatformContext } from '../../../platform/context'
 import { isErrorLike } from '../../../util/errors'
 import { isEqual } from '../../util'
-import { Environment } from '../environment'
+import { Model } from '../model'
 import { SettingsService } from './settings'
 
 /**
@@ -29,7 +29,7 @@ export interface ExecutableExtension extends Pick<ConfiguredExtension, 'id'> {
 export class ExtensionsService {
     public constructor(
         private platformContext: Pick<PlatformContext, 'queryGraphQL'>,
-        private environment: Subscribable<Pick<Environment, 'visibleTextDocuments'>>,
+        private model: Subscribable<Pick<Model, 'visibleTextDocuments'>>,
         private settingsService: Pick<SettingsService, 'data'>,
         private extensionActivationFilter = extensionsWithMatchedActivationEvent
     ) {}
@@ -61,14 +61,14 @@ export class ExtensionsService {
      * plus a certain period of inactivity).
      *
      * @param extensionActivationFilter A function that returns the set of extensions that should be activated
-     * based on the current environment only. It does not need to account for remembering which extensions were
+     * based on the current model only. It does not need to account for remembering which extensions were
      * previously activated in prior states.
      */
     public get activeExtensions(): Subscribable<ExecutableExtension[]> {
         const activeExtensionIDs: string[] = []
-        return combineLatest(from(this.environment), this.enabledExtensions).pipe(
-            tap(([environment, enabledExtensions]) => {
-                const activeExtensions = this.extensionActivationFilter(enabledExtensions, environment)
+        return combineLatest(from(this.model), this.enabledExtensions).pipe(
+            tap(([model, enabledExtensions]) => {
+                const activeExtensions = this.extensionActivationFilter(enabledExtensions, model)
                 for (const x of activeExtensions) {
                     if (!activeExtensionIDs.includes(x.id)) {
                         activeExtensionIDs.push(x.id)
@@ -95,7 +95,7 @@ export class ExtensionsService {
 
 function extensionsWithMatchedActivationEvent(
     enabledExtensions: ConfiguredExtension[],
-    environment: Pick<Environment, 'visibleTextDocuments'>
+    model: Pick<Model, 'visibleTextDocuments'>
 ): ConfiguredExtension[] {
     return enabledExtensions.filter(x => {
         try {
@@ -109,8 +109,8 @@ function extensionsWithMatchedActivationEvent(
                 console.warn(`Extension ${x.id} has no activation events, so it will never be activated.`)
                 return false
             }
-            const visibleTextDocumentLanguages = environment.visibleTextDocuments
-                ? environment.visibleTextDocuments.map(({ languageId }) => languageId)
+            const visibleTextDocumentLanguages = model.visibleTextDocuments
+                ? model.visibleTextDocuments.map(({ languageId }) => languageId)
                 : []
             return x.manifest.activationEvents.some(
                 e => e === '*' || visibleTextDocumentLanguages.some(l => e === `onLanguage:${l}`)

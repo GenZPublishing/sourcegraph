@@ -2,7 +2,7 @@ import { Observable, Subscribable, Subscription, Unsubscribable } from 'rxjs'
 import { switchMap } from 'rxjs/operators'
 import { Connection } from '../protocol/jsonrpc2/connection'
 import { createExtensionHostClientConnection, ExtensionHostClientConnection } from './connection'
-import { Environment } from './environment'
+import { Model } from './model'
 import { Services } from './services'
 
 export interface ExtensionHostClient extends Unsubscribable {
@@ -22,9 +22,9 @@ export interface ExtensionHostClient extends Unsubscribable {
  * connection is established.
  */
 export function createExtensionHostClient(
-    // TODO!(sqs): make it possible to just use an observable of environment, not
+    // TODO!(sqs): make it possible to just use an observable of model, not
     // behaviorsubject, to simplify data flow
-    environment: Subscribable<Environment> & { value: Environment },
+    model: Subscribable<Model> & { value: Model },
     services: Services,
     extensionHostConnection: Observable<Connection>
 ): ExtensionHostClient {
@@ -32,7 +32,7 @@ export function createExtensionHostClient(
 
     const client = extensionHostConnection.pipe(
         switchMap(connection => {
-            const client = createExtensionHostClientConnection(connection, environment, services)
+            const client = createExtensionHostClientConnection(connection, model, services)
             return new Observable<ExtensionHostClientConnection>(sub => {
                 sub.next(client)
                 return () => client.unsubscribe()

@@ -260,12 +260,12 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
     }
 
     private extensionsOnRootsChange = (roots: WorkspaceRoot[] | null): void => {
-        this.state.platformContext.environment.next({ ...this.state.platformContext.environment.value, roots })
+        this.state.platformContext.model.next({ ...this.state.platformContext.model.value, roots })
     }
 
     private extensionsOnVisibleTextDocumentsChange = (visibleTextDocuments: TextDocumentItem[] | null): void => {
-        this.state.platformContext.environment.next({
-            ...this.state.platformContext.environment.value,
+        this.state.platformContext.model.next({
+            ...this.state.platformContext.model.value,
             visibleTextDocuments,
         })
     }

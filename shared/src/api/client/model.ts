@@ -2,12 +2,12 @@ import { WorkspaceRoot } from '../protocol/plainTypes'
 import { TextDocumentItem } from './types/textDocument'
 
 /**
- * A description of the environment represented by the Sourcegraph extension client application.
+ * A description of the model represented by the Sourcegraph extension client application.
  *
  * This models the state of editor-like tools that display documents, allow selections and scrolling
  * in documents, and support extension configuration.
  */
-export interface Environment {
+export interface Model {
     /**
      * The currently open workspace roots (typically a single repository).
      */
@@ -20,8 +20,8 @@ export interface Environment {
     readonly visibleTextDocuments: TextDocumentItem[] | null
 }
 
-/** An empty Sourcegraph extension client environment. */
-export const EMPTY_ENVIRONMENT: Environment = {
+/** An empty Sourcegraph extension client model. */
+export const EMPTY_MODEL: Model = {
     roots: null,
     visibleTextDocuments: null,
 }

@@ -1,6 +1,6 @@
 import { basename, dirname, extname } from 'path'
 import { isSettingsValid, SettingsCascadeOrError } from '../../../settings/settings'
-import { Environment } from '../environment'
+import { Model } from '../model'
 import { TextDocumentItem } from '../types/textDocument'
 
 /**
@@ -27,14 +27,14 @@ export interface Context {
 }
 
 /**
- * Looks up a key in the computed context, which consists of special context properties (with higher precedence)
- * and the environment's context properties (with lower precedence).
+ * Looks up a key in the computed context, which consists of computed context properties (with higher precedence)
+ * and the context entries (with lower precedence).
  *
  * @param expr the context expr to evaluate
  * @param scope the user interface component in whose scope this computation should occur
  */
 export function getComputedContextProperty(
-    environment: Environment,
+    model: Model,
     settings: SettingsCascadeOrError,
     context: Context,
     key: string,
@@ -48,8 +48,7 @@ export function getComputedContextProperty(
         // which a falsey null default is useful).
         return value === undefined ? null : value
     }
-    const textDocument: TextDocumentItem | null =
-        scope || (environment.visibleTextDocuments && environment.visibleTextDocuments[0])
+    const textDocument: TextDocumentItem | null = scope || (model.visibleTextDocuments && model.visibleTextDocuments[0])
     if (key === 'resource' || key === 'component' /* BACKCOMPAT: allow 'component' */) {
         return !!textDocument
     }

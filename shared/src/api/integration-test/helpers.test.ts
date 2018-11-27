@@ -3,13 +3,13 @@ import { switchMap } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
 import { PlatformContext } from '../../platform/context'
 import { createExtensionHostClient, ExtensionHostClient } from '../client/client'
-import { Environment } from '../client/environment'
+import { Model } from '../client/model'
 import { Services } from '../client/services'
 import { InitData, startExtensionHost } from '../extension/extensionHost'
 import { createConnection } from '../protocol/jsonrpc2/connection'
 import { createMessageTransports } from '../protocol/jsonrpc2/helpers.test'
 
-const FIXTURE_ENVIRONMENT: Environment = {
+const FIXTURE_MODEL: Model = {
     roots: [{ uri: 'file:///' }],
     visibleTextDocuments: [
         {
@@ -42,7 +42,7 @@ export async function integrationTestContext(
     partialMocks: Partial<Mocks> = NOOP_MOCKS
 ): Promise<
     TestContext & {
-        environment: BehaviorSubject<Environment>
+        model: BehaviorSubject<Model>
         services: Services
     }
 > {
@@ -52,10 +52,10 @@ export async function integrationTestContext(
 
     const extensionHost = startExtensionHost(serverTransports)
 
-    const environment = new BehaviorSubject<Environment>(FIXTURE_ENVIRONMENT)
-    const services = new Services({ ...mocks, environment })
+    const model = new BehaviorSubject<Model>(FIXTURE_MODEL)
+    const services = new Services({ ...mocks, model })
     const client = createExtensionHostClient(
-        environment,
+        model,
         services,
         of(clientTransports).pipe(
             switchMap(async clientTransports => {
@@ -77,7 +77,7 @@ export async function integrationTestContext(
         client,
         extensionHost: await extensionHost.__testAPI,
         services,
-        environment,
+        model,
     }
 }
 

@@ -6,7 +6,7 @@ import { EMPTY_SETTINGS_CASCADE, SettingsCascadeOrError } from '../../../setting
 import { ContributableMenu, Contributions } from '../../protocol'
 import { Context } from '../context/context'
 import { EMPTY_COMPUTED_CONTEXT } from '../context/expr/evaluator'
-import { EMPTY_ENVIRONMENT, Environment } from '../environment'
+import { EMPTY_MODEL, Model } from '../model'
 import {
     contextFilter,
     ContributionRegistry,
@@ -51,14 +51,14 @@ const FIXTURE_CONTRIBUTIONS_MERGED: Contributions = {
 describe('ContributionRegistry', () => {
     it('is initially empty', () => {
         assert.deepStrictEqual(
-            new ContributionRegistry(of(EMPTY_ENVIRONMENT), { data: of(EMPTY_SETTINGS_CASCADE) }, of({})).entries.value,
+            new ContributionRegistry(of(EMPTY_MODEL), { data: of(EMPTY_SETTINGS_CASCADE) }, of({})).entries.value,
             []
         )
     })
 
     it('registers and unregisters contributions', () => {
         const subscriptions = new Subscription()
-        const registry = new ContributionRegistry(of(EMPTY_ENVIRONMENT), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
+        const registry = new ContributionRegistry(of(EMPTY_MODEL), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
         const entry1: ContributionsEntry = { contributions: FIXTURE_CONTRIBUTIONS_1 }
         const entry2: ContributionsEntry = { contributions: FIXTURE_CONTRIBUTIONS_2 }
 
@@ -76,7 +76,7 @@ describe('ContributionRegistry', () => {
     })
 
     it('replaces contributions', () => {
-        const registry = new ContributionRegistry(of(EMPTY_ENVIRONMENT), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
+        const registry = new ContributionRegistry(of(EMPTY_MODEL), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
         const entry1: ContributionsEntry = { contributions: FIXTURE_CONTRIBUTIONS_1 }
         const entry2: ContributionsEntry = { contributions: FIXTURE_CONTRIBUTIONS_2 }
 
@@ -101,7 +101,7 @@ describe('ContributionRegistry', () => {
                 ): Observable<Contributions> {
                     return super.getContributionsFromEntries(entries)
                 }
-            }(of(EMPTY_ENVIRONMENT), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
+            }(of(EMPTY_MODEL), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
             scheduler().run(({ cold, expectObservable }) =>
                 expectObservable(
                     registry.getContributionsFromEntries(
@@ -125,7 +125,7 @@ describe('ContributionRegistry', () => {
                 ): Observable<Contributions> {
                     return super.getContributionsFromEntries(entries)
                 }
-            }(of(EMPTY_ENVIRONMENT), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
+            }(of(EMPTY_MODEL), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
             scheduler().run(({ cold, expectObservable }) =>
                 expectObservable(
                     registry.getContributionsFromEntries(
@@ -152,9 +152,9 @@ describe('ContributionRegistry', () => {
                 const registry = new class extends ContributionRegistry {
                     public constructor() {
                         super(
-                            cold<Environment>('-a-b-|', {
-                                a: EMPTY_ENVIRONMENT,
-                                b: EMPTY_ENVIRONMENT,
+                            cold<Model>('-a-b-|', {
+                                a: EMPTY_MODEL,
+                                b: EMPTY_MODEL,
                             }),
                             {
                                 data: cold<SettingsCascadeOrError>('-a-b-|', {
@@ -192,7 +192,7 @@ describe('ContributionRegistry', () => {
                 const registry = new class extends ContributionRegistry {
                     public constructor() {
                         super(
-                            cold<Environment>('a', { a: EMPTY_ENVIRONMENT }),
+                            cold<Model>('a', { a: EMPTY_MODEL }),
                             { data: cold<SettingsCascadeOrError>('a', { a: EMPTY_SETTINGS_CASCADE }) },
                             cold<Context>('a', {})
                         )
