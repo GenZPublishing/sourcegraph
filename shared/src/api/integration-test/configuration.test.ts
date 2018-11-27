@@ -1,9 +1,9 @@
 import * as assert from 'assert'
-import { of } from 'rxjs'
-import { map } from 'rxjs/operators'
-import { SettingsUpdate } from '../client/services/settings'
+import { BehaviorSubject, of } from 'rxjs'
+import { SettingsCascadeOrError } from '../../settings/settings'
+import { SettingsEdit } from '../client/services/settings'
 import { assertToJSON } from '../extension/types/common.test'
-import { collectSubscribableValues, integrationTestContext } from './helpers.test'
+import { integrationTestContext } from './helpers.test'
 
 describe('Configuration (integration)', () => {
     it('is synchronously available', async () => {
@@ -14,7 +14,7 @@ describe('Configuration (integration)', () => {
 
     describe('Configuration#get', () => {
         it('gets configuration', async () => {
-            const { extensionHost } = await integrationTestContext()
+            const { extensionHost } = await integrationTestContext({ settings: of({ final: { a: 1 }, subjects: [] }) })
             assertToJSON(extensionHost.configuration.get(), { a: 1 })
             assert.deepStrictEqual(extensionHost.configuration.get().value, { a: 1 })
         })
@@ -22,34 +22,35 @@ describe('Configuration (integration)', () => {
 
     describe('Configuration#update', () => {
         it('updates configuration', async () => {
-            const calls: SettingsUpdate[] = []
+            const calls: SettingsEdit[] = []
             const { extensionHost } = await integrationTestContext({
-                updateSettings: (_subject, args) => calls.push(args),
+                settings: of({ final: { a: 1 }, subjects: [{ subject: {} as any, lastID: null, settings: null }] }),
+                updateSettings: async (_subject, edit) => {
+                    calls.push(edit)
+                },
             })
 
             await extensionHost.configuration.get().update('a', 2)
             await extensionHost.internal.sync()
-            assert.deepStrictEqual(calls, [{ path: ['a'], value: 2 }] as SettingsUpdate[])
+            assert.deepStrictEqual(calls, [{ path: ['a'], value: 2 }] as SettingsEdit[])
             calls.length = 0 // clear
 
             await extensionHost.configuration.get().update('a', 3)
             await extensionHost.internal.sync()
-            assert.deepStrictEqual(calls, [{ path: ['a'], value: 3 }] as SettingsUpdate[])
+            assert.deepStrictEqual(calls, [{ path: ['a'], value: 3 }] as SettingsEdit[])
         })
     })
 
     describe('configuration.subscribe', () => {
         it('subscribes to changes', async () => {
-            const { environment, extensionHost } = await integrationTestContext()
+            const mockSettings = new BehaviorSubject<SettingsCascadeOrError>({ final: {}, subjects: [] })
+            const { extensionHost } = await integrationTestContext({ settings: mockSettings })
 
             let calls = 0
             extensionHost.configuration.subscribe(() => calls++)
             assert.strictEqual(calls, 1) // called initially
 
-            environment.next({
-                ...environment.value,
-                configuration: { final: { a: 3 }, subjects: [] },
-            })
+            mockSettings.next({ final: {}, subjects: [] })
             await extensionHost.internal.sync()
             assert.strictEqual(calls, 2)
         })

@@ -222,7 +222,7 @@ export function isSettingsValid<S extends Settings>(
     return (
         settingsCascade.subjects !== null &&
         !isErrorLike(settingsCascade.subjects) &&
-        settingsCascade.subjects.every(subject => !isErrorLike(subject.settings)) &&
+        !settingsCascade.subjects.some(subject => isErrorLike(subject.settings)) &&
         settingsCascade.final !== null &&
         !isErrorLike(settingsCascade.final)
     )

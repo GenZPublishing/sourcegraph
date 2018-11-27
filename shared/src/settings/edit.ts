@@ -1,6 +1,6 @@
 import { from } from 'rxjs'
 import { map, switchMap, take } from 'rxjs/operators'
-import { SettingsEdit } from '../api/protocol/configuration'
+import { SettingsEdit } from '../api/client/services/settings'
 import { dataOrThrowErrors, gql, graphQLContent } from '../graphql/graphql'
 import * as GQL from '../graphql/schema'
 import { PlatformContext } from '../platform/context'

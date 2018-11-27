@@ -3,9 +3,8 @@ import { switchMap } from 'rxjs/operators'
 import { isSettingsValid } from '../../../settings/settings'
 import { createProxyAndHandleRequests } from '../../common/proxy'
 import { ExtConfigurationAPI } from '../../extension/api/configuration'
-import { SettingsEdit } from '../../protocol/configuration'
 import { Connection } from '../../protocol/jsonrpc2/connection'
-import { SettingsService } from '../services/settings'
+import { SettingsEdit, SettingsService } from '../services/settings'
 
 /** @internal */
 // TODO!3(sqs): rename to settings

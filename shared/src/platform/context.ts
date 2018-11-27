@@ -1,6 +1,6 @@
 import { NextObserver, Observable, Subscribable } from 'rxjs'
 import { Environment } from '../api/client/environment'
-import { SettingsEdit } from '../api/protocol/configuration'
+import { SettingsEdit } from '../api/client/services/settings'
 import { MessageTransports } from '../api/protocol/jsonrpc2/connection'
 import { GraphQLResult } from '../graphql/graphql'
 import * as GQL from '../graphql/schema'

@@ -1,4 +1,4 @@
-import { BehaviorSubject, Subscribable } from 'rxjs'
+import { from, Subscribable } from 'rxjs'
 import { PlatformContext } from '../../../platform/context'
 import { isSettingsValid, Settings, SettingsCascadeOrError } from '../../../settings/settings'
 
@@ -10,7 +10,10 @@ import { isSettingsValid, Settings, SettingsCascadeOrError } from '../../../sett
  */
 export type KeyPath = (string | number)[]
 
-export interface SettingsUpdate {
+/**
+ * An edit to apply to settings.
+ */
+export interface SettingsEdit {
     /** The key path to the value. */
     path: KeyPath
 
@@ -34,7 +37,7 @@ export interface SettingsService<S extends Settings = Settings> {
      *
      * @todo Support specifying which settings subject whose settings to update.
      */
-    update(edit: SettingsUpdate): Promise<void>
+    update(edit: SettingsEdit): Promise<void>
 }
 
 /**
@@ -43,20 +46,18 @@ export interface SettingsService<S extends Settings = Settings> {
  * @template S The settings type.
  */
 export function createSettingsService<S extends Settings = Settings>({
-    settings,
+    settings: data,
     updateSettings,
 }: Pick<PlatformContext, 'settings' | 'updateSettings'>): SettingsService<S> {
-    // TODO!(sqs): weird behavior if this is null when it's attempted to be used?
-    const data = new BehaviorSubject<SettingsCascadeOrError<S>>({ subjects: null, final: null })
     return {
-        data,
+        data: data as Subscribable<SettingsCascadeOrError<S>>, // cast to add type parameter S
         update: async edit => {
-            const settings = data.value
+            const settings = await from(data).toPromise()
             if (!isSettingsValid(settings)) {
                 throw new Error('invalid settings')
             }
             const subject = settings.subjects[settings.subjects.length - 1]
-            await updateSettings(subject.subject.id, { edit })
+            await updateSettings(subject.subject.id, edit)
         },
     }
 }
