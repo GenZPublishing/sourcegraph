@@ -1,9 +1,10 @@
 import * as assert from 'assert'
-import { Observable, of } from 'rxjs'
 import { Subscription } from 'rxjs'
+import { Observable, of } from 'rxjs'
 import { TestScheduler } from 'rxjs/testing'
 import { ConfiguredExtension } from '../../../extensions/extension'
 import { ContributableMenu, Contributions } from '../../protocol'
+import { Context } from '../context/context'
 import { EMPTY_COMPUTED_CONTEXT } from '../context/expr/evaluator'
 import { EMPTY_ENVIRONMENT, Environment } from '../environment'
 import {
@@ -49,7 +50,7 @@ const FIXTURE_CONTRIBUTIONS_MERGED: Contributions = {
 
 describe('ContributionRegistry', () => {
     function create(env: Observable<Environment<ConfiguredExtension>> = of(EMPTY_ENVIRONMENT)): ContributionRegistry {
-        return new ContributionRegistry(env)
+        return new ContributionRegistry(env, of({}))
     }
 
     it('is initially empty', () => {
@@ -101,7 +102,7 @@ describe('ContributionRegistry', () => {
                 ): Observable<Contributions> {
                     return super.getContributionsFromEntries(entries)
                 }
-            }(of(EMPTY_ENVIRONMENT))
+            }(of(EMPTY_ENVIRONMENT), of({}))
             scheduler().run(({ cold, expectObservable }) =>
                 expectObservable(
                     registry.getContributionsFromEntries(
@@ -125,7 +126,7 @@ describe('ContributionRegistry', () => {
                 ): Observable<Contributions> {
                     return super.getContributionsFromEntries(entries)
                 }
-            }(of(EMPTY_ENVIRONMENT))
+            }(of(EMPTY_ENVIRONMENT), of({}))
             scheduler().run(({ cold, expectObservable }) =>
                 expectObservable(
                     registry.getContributionsFromEntries(
@@ -153,9 +154,10 @@ describe('ContributionRegistry', () => {
                     public constructor() {
                         super(
                             cold<Environment>('-a-b-|', {
-                                a: { ...EMPTY_ENVIRONMENT, context: { x: 1, y: 2 } },
-                                b: { ...EMPTY_ENVIRONMENT, context: { x: 1, y: 1 } },
-                            })
+                                a: { ...EMPTY_ENVIRONMENT },
+                                b: { ...EMPTY_ENVIRONMENT },
+                            }),
+                            cold<Context>('-a-b-|', { a: { x: 1, y: 2 }, b: { x: 1, y: 1 } })
                         )
                     }
 
@@ -184,7 +186,7 @@ describe('ContributionRegistry', () => {
             scheduler().run(({ cold, expectObservable }) => {
                 const registry = new class extends ContributionRegistry {
                     public constructor() {
-                        super(cold<Environment>('a', { a: EMPTY_ENVIRONMENT }))
+                        super(cold<Environment>('a', { a: EMPTY_ENVIRONMENT }), cold<Context>('a', {}))
                     }
 
                     public getContributionsFromEntries(

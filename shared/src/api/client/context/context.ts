@@ -26,17 +26,19 @@ export interface Context {
     [key: string]: string | number | boolean | Context | null
 }
 
-/** A context that has no properties. */
-export const EMPTY_CONTEXT: Context = {}
-
 /**
  * Looks up a key in the computed context, which consists of special context properties (with higher precedence)
  * and the environment's context properties (with lower precedence).
  *
- * @param key the context property key to look up
+ * @param expr the context expr to evaluate
  * @param scope the user interface component in whose scope this computation should occur
  */
-export function getComputedContextProperty(environment: Environment, key: string, scope?: TextDocumentItem): any {
+export function getComputedContextProperty(
+    environment: Environment,
+    context: Context,
+    key: string,
+    scope?: TextDocumentItem
+): any {
     if (key.startsWith('config.')) {
         const prop = key.slice('config.'.length)
         const value = isSettingsValid(environment.configuration) ? environment.configuration.final[prop] : undefined
@@ -86,7 +88,7 @@ export function getComputedContextProperty(environment: Environment, key: string
         }
     }
     if (key === 'context') {
-        return environment.context
+        return context
     }
-    return environment.context[key]
+    return context[key]
 }

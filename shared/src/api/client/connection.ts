@@ -1,4 +1,4 @@
-import { from, NextObserver, Subscribable, Subscription } from 'rxjs'
+import { from, Subscribable, Subscription } from 'rxjs'
 import { distinctUntilChanged, map } from 'rxjs/operators'
 import { ContextValues } from 'sourcegraph'
 import { Connection } from '../protocol/jsonrpc2/connection'
@@ -55,7 +55,7 @@ export interface ActivatedExtension {
 
 export function createExtensionHostClientConnection(
     connection: Connection,
-    environment: Subscribable<Environment> & { value: Environment } & NextObserver<Environment>,
+    environment: Subscribable<Environment> & { value: Environment },
     services: Services
 ): ExtensionHostClientConnection {
     const subscription = new Subscription()
@@ -75,12 +75,7 @@ export function createExtensionHostClientConnection(
     )
     subscription.add(
         new ClientContext(connection, (updates: ContextValues) =>
-            // Set environment manually, not via Controller#setEnvironment, to avoid recursive setEnvironment calls
-            // (when this callback is called during setEnvironment's teardown of unused clients).
-            environment.next({
-                ...environment.value,
-                context: applyContextUpdate(environment.value.context, updates),
-            })
+            services.context.context.next(applyContextUpdate(services.context.context.value, updates))
         )
     )
     subscription.add(new ClientExtensions(connection, services.extensions))

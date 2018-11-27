@@ -18,13 +18,7 @@ import { LocalStorageSubject } from '../util/LocalStorageSubject'
  */
 export function createPlatformContext(): PlatformContext {
     // TODO!(sqs): clean up, remove redundant settingsCascade and environment
-    const environment = new BehaviorSubject<Environment>({
-        ...EMPTY_ENVIRONMENT,
-        context: {
-            // TODO!3(sqs): still necessary?
-            'clientApplication.isSourcegraph': true,
-        },
-    })
+    const environment = new BehaviorSubject<Environment>(EMPTY_ENVIRONMENT)
     settingsRefreshes
         .pipe(
             startWith(null),

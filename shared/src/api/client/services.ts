@@ -1,4 +1,5 @@
 import { Subscribable } from 'rxjs'
+import { createContextService } from './context/contextService'
 import { Environment } from './environment'
 import { CommandRegistry } from './services/command'
 import { ContributionRegistry } from './services/contribution'
@@ -18,7 +19,8 @@ export class Services {
     constructor(private environment: Subscribable<Environment>) {}
 
     public readonly commands = new CommandRegistry()
-    public readonly contribution = new ContributionRegistry(this.environment)
+    public readonly context = createContextService()
+    public readonly contribution = new ContributionRegistry(this.environment, this.context.context)
     public readonly extensions = new ExtensionRegistry(this.environment)
     public readonly notifications = new NotificationsService()
     public readonly settings = new SettingsService()
