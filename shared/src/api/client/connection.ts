@@ -23,7 +23,6 @@ import {
     ShowMessageParams,
     ShowMessageRequestParams,
 } from './services/notifications'
-import { SettingsUpdate } from './services/settings'
 
 export interface ExtensionHostClientConnection {
     /**
@@ -62,17 +61,7 @@ export function createExtensionHostClientConnection(
 
     connection.onRequest('ping', () => 'pong')
 
-    subscription.add(
-        new ClientConfiguration<any>(
-            connection,
-            from(environment).pipe(
-                map(({ configuration }) => configuration),
-                distinctUntilChanged()
-            ),
-            (params: SettingsUpdate) =>
-                new Promise<void>(resolve => services.settings.updates.next({ ...params, resolve }))
-        )
-    )
+    subscription.add(new ClientConfiguration<any>(connection, services.settings))
     subscription.add(
         new ClientContext(connection, (updates: ContextValues) =>
             services.context.data.next(applyContextUpdate(services.context.data.value, updates))

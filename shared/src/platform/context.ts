@@ -15,6 +15,8 @@ import { Settings, SettingsCascadeOrError } from '../settings/settings'
 export interface PlatformContext {
     /**
      * An observable that emits whenever the environment changes.
+     *
+     * TODO!(sqs): remove {value:Environment}, currently only used in SourcegraphWebApp.tsx.
      */
     readonly environment: Subscribable<Environment> & { value: Environment } & NextObserver<Environment>
 

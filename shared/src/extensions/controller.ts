@@ -1,5 +1,5 @@
 import { combineLatest, from, Observable, Subject, Subscribable, Subscription, Unsubscribable } from 'rxjs'
-import { distinctUntilChanged, filter, map, mergeMap, share, switchMap, tap } from 'rxjs/operators'
+import { distinctUntilChanged, filter, map, share, switchMap, tap } from 'rxjs/operators'
 import { createExtensionHostClient } from '../api/client/client'
 import { Environment } from '../api/client/environment'
 import { Services } from '../api/client/services'
@@ -10,7 +10,7 @@ import { InitData } from '../api/extension/extensionHost'
 import { Contributions } from '../api/protocol'
 import { createConnection } from '../api/protocol/jsonrpc2/connection'
 import { BrowserConsoleTracer } from '../api/protocol/jsonrpc2/trace'
-import { registerBuiltinClientCommands, updateConfiguration } from '../commands/commands'
+import { registerBuiltinClientCommands } from '../commands/commands'
 import { Notification } from '../notifications/notification'
 import { PlatformContext } from '../platform/context'
 import { isErrorLike } from '../util/errors'
@@ -71,7 +71,7 @@ export interface ExtensionsControllerProps {
 export function createController(context: PlatformContext): Controller {
     const subscriptions = new Subscription()
 
-    const services = new Services(context.environment)
+    const services = new Services(context)
     const extensionHostConnection = combineLatest(
         context.createExtensionHost().pipe(
             switchMap(async messageTransports => {
@@ -129,17 +129,6 @@ export function createController(context: PlatformContext): Controller {
         services.notifications.showInputs.subscribe(({ message, defaultValue, resolve }) =>
             resolve(prompt(messageFromExtension(message), defaultValue))
         )
-    )
-    subscriptions.add(
-        services.settings.updates
-            .pipe(
-                mergeMap(params => {
-                    const update = updateConfiguration(context, params)
-                    params.resolve(update)
-                    return from(update)
-                })
-            )
-            .subscribe(undefined, err => console.error(err))
     )
 
     // Print window/logMessage log messages to the browser devtools console.

@@ -15,7 +15,7 @@ import { ViewProviderRegistry } from './services/view'
  * Services is a container for all services used by the client application.
  */
 export class Services {
-    constructor(private platformContext: PlatformContext) {}
+    constructor(private platformContext: Pick<PlatformContext, 'environment' | 'settings' | 'updateSettings'>) {}
 
     public readonly commands = new CommandRegistry()
     public readonly context = createContextService()

@@ -1,12 +1,13 @@
 import * as assert from 'assert'
+import { of } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { SettingsUpdate } from '../client/services/settings'
 import { assertToJSON } from '../extension/types/common.test'
 import { collectSubscribableValues, integrationTestContext } from './helpers.test'
 
 describe('Configuration (integration)', () => {
-    it('is usable in synchronous activation functions', async () => {
-        const { extensionHost } = await integrationTestContext()
+    it('is synchronously available', async () => {
+        const { extensionHost } = await integrationTestContext({ settings: of({ final: {}, subjects: [] }) })
         assert.doesNotThrow(() => extensionHost.configuration.subscribe(() => void 0))
         assert.doesNotThrow(() => extensionHost.configuration.get())
     })
@@ -21,20 +22,19 @@ describe('Configuration (integration)', () => {
 
     describe('Configuration#update', () => {
         it('updates configuration', async () => {
-            const { extensionHost, services } = await integrationTestContext()
-
-            const values = collectSubscribableValues(
-                services.settings.updates.pipe(map(({ path, value }) => ({ path, value })))
-            )
+            const calls: SettingsUpdate[] = []
+            const { extensionHost } = await integrationTestContext({
+                updateSettings: (_subject, args) => calls.push(args),
+            })
 
             await extensionHost.configuration.get().update('a', 2)
             await extensionHost.internal.sync()
-            assert.deepStrictEqual(values, [{ path: ['a'], value: 2 }] as SettingsUpdate[])
-            values.length = 0 // clear
+            assert.deepStrictEqual(calls, [{ path: ['a'], value: 2 }] as SettingsUpdate[])
+            calls.length = 0 // clear
 
             await extensionHost.configuration.get().update('a', 3)
             await extensionHost.internal.sync()
-            assert.deepStrictEqual(values, [{ path: ['a'], value: 3 }] as SettingsUpdate[])
+            assert.deepStrictEqual(calls, [{ path: ['a'], value: 3 }] as SettingsUpdate[])
         })
     })
 

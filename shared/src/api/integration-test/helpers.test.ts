@@ -1,6 +1,7 @@
-import { BehaviorSubject, of } from 'rxjs'
+import { BehaviorSubject, NEVER, of } from 'rxjs'
 import { switchMap } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
+import { PlatformContext } from '../../platform/context'
 import { createExtensionHostClient, ExtensionHostClient } from '../client/client'
 import { Environment } from '../client/environment'
 import { Services } from '../client/services'
@@ -26,23 +27,34 @@ interface TestContext {
     extensionHost: typeof sourcegraph
 }
 
+interface Mocks extends Pick<PlatformContext, 'settings' | 'updateSettings'> {}
+
+const NOOP_MOCKS: Mocks = {
+    settings: NEVER,
+    updateSettings: () => Promise.reject(new Error('Mocks#updateSettings not implemented')),
+}
+
 /**
  * Set up a new client-extension integration test.
  *
  * @internal
  */
-export async function integrationTestContext(): Promise<
+export async function integrationTestContext(
+    partialMocks: Partial<Mocks> = NOOP_MOCKS
+): Promise<
     TestContext & {
         environment: BehaviorSubject<Environment>
         services: Services
     }
 > {
+    const mocks = partialMocks ? { ...NOOP_MOCKS, ...partialMocks } : NOOP_MOCKS
+
     const [clientTransports, serverTransports] = createMessageTransports()
 
     const extensionHost = startExtensionHost(serverTransports)
 
     const environment = new BehaviorSubject<Environment>(FIXTURE_ENVIRONMENT)
-    const services = new Services(environment)
+    const services = new Services({ ...mocks, environment })
     const client = createExtensionHostClient(
         environment,
         services,
