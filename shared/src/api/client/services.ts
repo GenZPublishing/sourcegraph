@@ -15,7 +15,9 @@ import { ViewProviderRegistry } from './services/view'
  * Services is a container for all services used by the client application.
  */
 export class Services {
-    constructor(private platformContext: Pick<PlatformContext, 'environment' | 'settings' | 'updateSettings'>) {}
+    constructor(
+        private platformContext: Pick<PlatformContext, 'environment' | 'settings' | 'updateSettings' | 'queryGraphQL'>
+    ) {}
 
     public readonly commands = new CommandRegistry()
     public readonly context = createContextService()
@@ -26,7 +28,11 @@ export class Services {
         this.settings,
         this.context.data
     )
-    public readonly extensions = new ExtensionsService(this.platformContext.environment, this.settings)
+    public readonly extensions = new ExtensionsService(
+        this.platformContext,
+        this.platformContext.environment,
+        this.settings
+    )
     public readonly textDocumentDefinition = new TextDocumentLocationProviderRegistry()
     public readonly textDocumentImplementation = new TextDocumentLocationProviderRegistry()
     public readonly textDocumentReferences = new TextDocumentReferencesProviderRegistry()

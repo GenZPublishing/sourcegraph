@@ -22,7 +22,7 @@ export interface PlatformContext {
 
     /**
      * An observable that emits the settings cascade upon subscription and whenever it changes (including when it
-     * changed as a result of a call to {@link PlatformContext#updateSettings}).
+     * changes as a result of a call to {@link PlatformContext#updateSettings}).
      */
     readonly settings: Subscribable<SettingsCascadeOrError<Settings>>
 

@@ -12,8 +12,6 @@ import {
     createController as createExtensionsController,
     ExtensionsControllerProps,
 } from '../../shared/src/extensions/controller'
-import { ConfiguredRegistryExtension } from '../../shared/src/extensions/extension'
-import { viewerConfiguredExtensions } from '../../shared/src/extensions/helpers'
 import * as GQL from '../../shared/src/graphql/schema'
 import { Notifications } from '../../shared/src/notifications/Notifications'
 import { PlatformContextProps } from '../../shared/src/platform/context'
@@ -151,16 +149,6 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
         this.subscriptions.add(
             from(this.state.platformContext.settings).subscribe(settingsCascade => this.setState({ settingsCascade }))
         )
-
-        // Keep the Sourcegraph extensions controller's extensions up-to-date.
-        //
-        // TODO(sqs): handle loading and errors
-        this.subscriptions.add(
-            viewerConfiguredExtensions(this.state.platformContext).subscribe(
-                extensions => this.onViewerConfiguredExtensionsChange(extensions),
-                err => console.error(err)
-            )
-        )
     }
 
     public componentWillUnmount(): void {
@@ -273,13 +261,6 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
 
     private extensionsOnRootsChange = (roots: WorkspaceRoot[] | null): void => {
         this.state.platformContext.environment.next({ ...this.state.platformContext.environment.value, roots })
-    }
-
-    private onViewerConfiguredExtensionsChange(viewerConfiguredExtensions: ConfiguredRegistryExtension[]): void {
-        this.state.platformContext.environment.next({
-            ...this.state.platformContext.environment.value,
-            extensions: viewerConfiguredExtensions,
-        })
     }
 
     private extensionsOnVisibleTextDocumentsChange = (visibleTextDocuments: TextDocumentItem[] | null): void => {

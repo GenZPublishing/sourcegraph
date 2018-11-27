@@ -1,4 +1,4 @@
-import { Subscription } from 'rxjs'
+import { from, Subscription } from 'rxjs'
 import { bufferCount, distinctUntilChanged, startWith } from 'rxjs/operators'
 import { createProxyAndHandleRequests } from '../../common/proxy'
 import { ExtExtensionsAPI } from '../../extension/api/extensions'
@@ -22,7 +22,7 @@ export class ClientExtensions {
         this.proxy = createProxyAndHandleRequests('extensions', connection, this)
 
         this.subscriptions.add(
-            extensionRegistry.activeExtensions
+            from(extensionRegistry.activeExtensions)
                 .pipe(
                     startWith([] as ExecutableExtension[]),
                     distinctUntilChanged(),

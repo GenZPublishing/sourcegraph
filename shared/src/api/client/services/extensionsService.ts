@@ -1,11 +1,12 @@
-import { combineLatest, from, Observable, Subscribable } from 'rxjs'
+import { combineLatest, from, Subscribable } from 'rxjs'
 import { distinctUntilChanged, map, tap } from 'rxjs/operators'
 import {
     ConfiguredExtension,
     getScriptURLFromExtensionManifest,
     isExtensionEnabled,
 } from '../../../extensions/extension'
-import { SettingsCascadeOrError } from '../../../settings/settings'
+import { viewerConfiguredExtensions } from '../../../extensions/helpers'
+import { PlatformContext } from '../../../platform/context'
 import { isErrorLike } from '../../../util/errors'
 import { isEqual } from '../../util'
 import { Environment } from '../environment'
@@ -27,10 +28,26 @@ export interface ExecutableExtension extends Pick<ConfiguredExtension, 'id'> {
  */
 export class ExtensionsService {
     public constructor(
-        private environment: Subscribable<Pick<Environment, 'extensions' | 'visibleTextDocuments'>>,
+        private platformContext: Pick<PlatformContext, 'queryGraphQL'>,
+        private environment: Subscribable<Pick<Environment, 'visibleTextDocuments'>>,
         private settingsService: Pick<SettingsService, 'data'>,
         private extensionActivationFilter = extensionsWithMatchedActivationEvent
     ) {}
+
+    public get configuredExtensions(): Subscribable<ConfiguredExtension[]> {
+        return viewerConfiguredExtensions({
+            settings: this.settingsService.data,
+            queryGraphQL: this.platformContext.queryGraphQL,
+        })
+    }
+
+    public get enabledExtensions(): Subscribable<ConfiguredExtension[]> {
+        return combineLatest(from(this.settingsService.data), this.configuredExtensions).pipe(
+            map(([settings, configuredExtensions]) =>
+                configuredExtensions.filter(x => isExtensionEnabled(settings.final, x.id))
+            )
+        )
+    }
 
     /**
      * Returns an observable that emits the set of extensions that should be active, based on the previous and
@@ -47,18 +64,18 @@ export class ExtensionsService {
      * based on the current environment only. It does not need to account for remembering which extensions were
      * previously activated in prior states.
      */
-    public get activeExtensions(): Observable<ExecutableExtension[]> {
+    public get activeExtensions(): Subscribable<ExecutableExtension[]> {
         const activeExtensionIDs: string[] = []
-        return combineLatest(from(this.environment), from(this.settingsService.data)).pipe(
-            tap(([environment, settings]) => {
-                const activeExtensions = this.extensionActivationFilter(environment, settings)
+        return combineLatest(from(this.environment), this.enabledExtensions).pipe(
+            tap(([environment, enabledExtensions]) => {
+                const activeExtensions = this.extensionActivationFilter(enabledExtensions, environment)
                 for (const x of activeExtensions) {
                     if (!activeExtensionIDs.includes(x.id)) {
                         activeExtensionIDs.push(x.id)
                     }
                 }
             }),
-            map(([{ extensions }]) => (extensions ? extensions.filter(x => activeExtensionIDs.includes(x.id)) : [])),
+            map(([, extensions]) => (extensions ? extensions.filter(x => activeExtensionIDs.includes(x.id)) : [])),
             distinctUntilChanged((a, b) => isEqual(a, b)),
             // TODO!2(sqs): memoize getScriptURLForExtension
             /** Run {@link ControllerHelpers.getScriptURLForExtension} last because it is nondeterministic. */
@@ -77,17 +94,12 @@ export class ExtensionsService {
 }
 
 function extensionsWithMatchedActivationEvent(
-    environment: Pick<Environment, 'extensions' | 'visibleTextDocuments'>,
-    settings: SettingsCascadeOrError
+    enabledExtensions: ConfiguredExtension[],
+    environment: Pick<Environment, 'visibleTextDocuments'>
 ): ConfiguredExtension[] {
-    if (!environment.extensions) {
-        return []
-    }
-    return environment.extensions.filter(x => {
+    return enabledExtensions.filter(x => {
         try {
-            if (!isExtensionEnabled(settings.final, x.id)) {
-                return false
-            } else if (!x.manifest) {
+            if (!x.manifest) {
                 console.warn(`Extension ${x.id} was not found. Remove it from settings to suppress this warning.`)
                 return false
             } else if (isErrorLike(x.manifest)) {

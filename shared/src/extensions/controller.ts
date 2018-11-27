@@ -1,10 +1,10 @@
-import { combineLatest, from, Observable, Subject, Subscribable, Subscription, Unsubscribable } from 'rxjs'
-import { distinctUntilChanged, filter, map, share, switchMap, tap } from 'rxjs/operators'
+import { combineLatest, from, Observable, Subject, Subscription, Unsubscribable } from 'rxjs'
+import { distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators'
 import { createExtensionHostClient } from '../api/client/client'
-import { Environment } from '../api/client/environment'
 import { Services } from '../api/client/services'
 import { ExecuteCommandParams } from '../api/client/services/command'
 import { ContributionRegistry } from '../api/client/services/contribution'
+import { ExtensionsService } from '../api/client/services/extensionsService'
 import { MessageType } from '../api/client/services/notifications'
 import { InitData } from '../api/extension/extensionHost'
 import { Contributions } from '../api/protocol'
@@ -14,7 +14,6 @@ import { registerBuiltinClientCommands } from '../commands/commands'
 import { Notification } from '../notifications/notification'
 import { PlatformContext } from '../platform/context'
 import { isErrorLike } from '../util/errors'
-import { ConfiguredExtension } from './extension'
 import { ExtensionManifest } from './extensionManifest'
 
 export interface Controller extends Unsubscribable {
@@ -99,7 +98,7 @@ export function createController(context: PlatformContext): Controller {
     const notifications = new Subject<Notification>()
 
     subscriptions.add(registerBuiltinClientCommands(context, services.commands))
-    subscriptions.add(registerExtensionContributions(services.contribution, context.environment))
+    subscriptions.add(registerExtensionContributions(services.contribution, services.extensions))
 
     // Show messages (that don't need user input) as global notifications.
     subscriptions.add(
@@ -169,11 +168,9 @@ export function createController(context: PlatformContext): Controller {
 
 function registerExtensionContributions(
     contributionRegistry: ContributionRegistry,
-    environment: Subscribable<Environment<ConfiguredExtension>>
+    { enabledExtensions }: Pick<ExtensionsService, 'enabledExtensions'>
 ): Unsubscribable {
-    const contributions = from(environment).pipe(
-        map(({ extensions }) => extensions),
-        filter((extensions): extensions is ConfiguredExtension[] => !!extensions),
+    const contributions = from(enabledExtensions).pipe(
         map(extensions =>
             extensions
                 .map(({ manifest }) => manifest)

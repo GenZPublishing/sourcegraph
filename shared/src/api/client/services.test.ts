@@ -9,6 +9,7 @@ describe('Services', () => {
             environment: new BehaviorSubject(EMPTY_ENVIRONMENT),
             settings: NEVER,
             updateSettings: () => Promise.reject(new Error('not implemented')),
+            queryGraphQL: () => NEVER,
         })
     })
 })

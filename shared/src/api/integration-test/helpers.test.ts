@@ -1,4 +1,4 @@
-import { BehaviorSubject, NEVER, of } from 'rxjs'
+import { BehaviorSubject, NEVER, of, throwError } from 'rxjs'
 import { switchMap } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
 import { PlatformContext } from '../../platform/context'
@@ -18,7 +18,6 @@ const FIXTURE_ENVIRONMENT: Environment = {
             text: 't',
         },
     ],
-    extensions: [{ id: 'x', manifest: null, rawManifest: null }],
 }
 
 interface TestContext {
@@ -26,11 +25,12 @@ interface TestContext {
     extensionHost: typeof sourcegraph
 }
 
-interface Mocks extends Pick<PlatformContext, 'settings' | 'updateSettings'> {}
+interface Mocks extends Pick<PlatformContext, 'settings' | 'updateSettings' | 'queryGraphQL'> {}
 
 const NOOP_MOCKS: Mocks = {
     settings: NEVER,
     updateSettings: () => Promise.reject(new Error('Mocks#updateSettings not implemented')),
+    queryGraphQL: () => throwError(new Error('Mocks#queryGraphQL not implemented')),
 }
 
 /**
