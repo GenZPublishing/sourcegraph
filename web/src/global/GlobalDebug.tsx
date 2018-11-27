@@ -4,9 +4,8 @@ import { Link } from 'react-router-dom'
 import { ExtensionsControllerProps } from '../../../shared/src/extensions/controller'
 import { ExtensionStatusPopover } from '../../../shared/src/extensions/ExtensionStatus'
 import { PlatformContextProps } from '../../../shared/src/platform/context'
-import { ExtensionsEnvironmentProps } from '../extensions/environment/ExtensionsEnvironment'
 
-interface Props extends ExtensionsEnvironmentProps, ExtensionsControllerProps, PlatformContextProps {
+interface Props extends ExtensionsControllerProps, PlatformContextProps {
     location: H.Location
 }
 

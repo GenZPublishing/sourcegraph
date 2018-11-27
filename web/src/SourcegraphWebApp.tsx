@@ -17,13 +17,13 @@ import { viewerConfiguredExtensions } from '../../shared/src/extensions/helpers'
 import * as GQL from '../../shared/src/graphql/schema'
 import { Notifications } from '../../shared/src/notifications/Notifications'
 import { PlatformContextProps } from '../../shared/src/platform/context'
+import { SettingsCascadeProps } from '../../shared/src/settings/settings'
 import { isErrorLike } from '../../shared/src/util/errors'
 import { authenticatedUser } from './auth'
 import { FeedbackText } from './components/FeedbackText'
 import { HeroPage } from './components/HeroPage'
 import { Tooltip } from './components/tooltip/Tooltip'
 import { ExploreSectionDescriptor } from './explore/ExploreArea'
-import { ExtensionsEnvironmentProps } from './extensions/environment/ExtensionsEnvironment'
 import { ExtensionAreaRoute } from './extensions/extension/ExtensionArea'
 import { ExtensionAreaHeaderNavItem } from './extensions/extension/ExtensionAreaHeader'
 import { ExtensionsAreaRoute } from './extensions/ExtensionsArea'
@@ -61,7 +61,7 @@ export interface SourcegraphWebAppProps extends KeybindingsProps {
     routes: ReadonlyArray<LayoutRouteProps>
 }
 
-interface SourcegraphWebAppState extends PlatformContextProps, ExtensionsEnvironmentProps, ExtensionsControllerProps {
+interface SourcegraphWebAppState extends PlatformContextProps, SettingsCascadeProps, ExtensionsControllerProps {
     error?: Error
 
     /** The currently authenticated user (or null if the viewer is anonymous). */
@@ -105,7 +105,7 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
             navbarSearchQuery: '',
             platformContext,
             extensionsController: createExtensionsController(platformContext),
-            environment: platformContext.environment.value,
+            settingsCascade: platformContext.environment.value.configuration,
             viewerSubject: SITE_SUBJECT_NO_ADMIN,
             isMainPage: false,
         }
@@ -150,9 +150,9 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
         this.subscriptions.add(this.state.extensionsController)
 
         this.subscriptions.add(
-            this.state.platformContext.environment.subscribe(environment => {
-                this.setState({ environment })
-            })
+            from(this.state.platformContext.environment)
+                .pipe(map(({ configuration }) => configuration))
+                .subscribe(settingsCascade => this.setState({ settingsCascade }))
         )
 
         // Keep the Sourcegraph extensions controller's extensions up-to-date.
@@ -233,7 +233,7 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
                                 {...routeComponentProps}
                                 authenticatedUser={authenticatedUser}
                                 viewerSubject={this.state.viewerSubject}
-                                settingsCascade={this.state.environment.configuration}
+                                settingsCascade={this.state.settingsCascade}
                                 // Theme
                                 isLightTheme={this.state.isLightTheme}
                                 onThemeChange={this.onThemeChange}
@@ -244,7 +244,6 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
                                 onNavbarQueryChange={this.onNavbarQueryChange}
                                 // Extensions
                                 platformContext={this.state.platformContext}
-                                environment={this.state.environment}
                                 extensionsOnRootsChange={this.extensionsOnRootsChange}
                                 extensionsOnVisibleTextDocumentsChange={this.extensionsOnVisibleTextDocumentsChange}
                                 extensionsController={this.state.extensionsController}
