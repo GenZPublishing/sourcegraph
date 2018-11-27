@@ -10,6 +10,15 @@
     "allowJs": true,
     "checkJs": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "config/**/*.js", "config/**/*.ts", "scripts/**/*.ts", "*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "config/**/*.js",
+    "config/**/*.ts",
+    "scripts/**/*.ts",
+    "*.ts",
+    "../../shared/src/api/client/services/extensionsService.test.ts",
+    "../../shared/src/api/client/services/extensionsService.ts"
+  ],
   "exclude": ["../../node_modules", "./build/**/*", "./*.safariextension"]
 }

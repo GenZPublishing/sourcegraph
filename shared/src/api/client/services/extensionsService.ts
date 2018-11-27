@@ -1,12 +1,15 @@
-import { from, Observable, Subscribable } from 'rxjs'
-import { map, tap } from 'rxjs/operators'
+import { combineLatest, from, Observable, Subscribable } from 'rxjs'
+import { distinctUntilChanged, map, tap } from 'rxjs/operators'
 import {
     ConfiguredExtension,
     getScriptURLFromExtensionManifest,
     isExtensionEnabled,
 } from '../../../extensions/extension'
+import { SettingsCascadeOrError } from '../../../settings/settings'
 import { isErrorLike } from '../../../util/errors'
+import { isEqual } from '../../util'
 import { Environment } from '../environment'
+import { SettingsService } from './settings'
 
 /**
  * The information about an extension necessary to execute and activate it.
@@ -22,9 +25,10 @@ export interface ExecutableExtension extends Pick<ConfiguredExtension, 'id'> {
  * @internal This is an internal implementation detail and is different from the product feature called the
  * "extension registry" (where users can search for and enable extensions).
  */
-export class ExtensionRegistry {
+export class ExtensionsService {
     public constructor(
-        private environment: Subscribable<Pick<Environment, 'configuration' | 'extensions' | 'visibleTextDocuments'>>,
+        private environment: Subscribable<Pick<Environment, 'extensions' | 'visibleTextDocuments'>>,
+        private settingsService: Pick<SettingsService, 'data'>,
         private extensionActivationFilter = extensionsWithMatchedActivationEvent
     ) {}
 
@@ -45,16 +49,17 @@ export class ExtensionRegistry {
      */
     public get activeExtensions(): Observable<ExecutableExtension[]> {
         const activeExtensionIDs: string[] = []
-        return from(this.environment).pipe(
-            tap(environment => {
-                const activeExtensions = this.extensionActivationFilter(environment)
+        return combineLatest(from(this.environment), from(this.settingsService.data)).pipe(
+            tap(([environment, settings]) => {
+                const activeExtensions = this.extensionActivationFilter(environment, settings)
                 for (const x of activeExtensions) {
                     if (!activeExtensionIDs.includes(x.id)) {
                         activeExtensionIDs.push(x.id)
                     }
                 }
             }),
-            map(({ extensions }) => (extensions ? extensions.filter(x => activeExtensionIDs.includes(x.id)) : [])),
+            map(([{ extensions }]) => (extensions ? extensions.filter(x => activeExtensionIDs.includes(x.id)) : [])),
+            distinctUntilChanged((a, b) => isEqual(a, b)),
             // TODO!2(sqs): memoize getScriptURLForExtension
             /** Run {@link ControllerHelpers.getScriptURLForExtension} last because it is nondeterministic. */
             map(extensions =>
@@ -72,14 +77,15 @@ export class ExtensionRegistry {
 }
 
 function extensionsWithMatchedActivationEvent(
-    environment: Pick<Environment, 'configuration' | 'extensions' | 'visibleTextDocuments'>
+    environment: Pick<Environment, 'extensions' | 'visibleTextDocuments'>,
+    settings: SettingsCascadeOrError
 ): ConfiguredExtension[] {
     if (!environment.extensions) {
         return []
     }
     return environment.extensions.filter(x => {
         try {
-            if (!isExtensionEnabled(environment.configuration.final, x.id)) {
+            if (!isExtensionEnabled(settings.final, x.id)) {
                 return false
             } else if (!x.manifest) {
                 console.warn(`Extension ${x.id} was not found. Remove it from settings to suppress this warning.`)

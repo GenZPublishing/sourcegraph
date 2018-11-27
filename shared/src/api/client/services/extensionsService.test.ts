@@ -1,9 +1,10 @@
 import assert from 'assert'
 import { TestScheduler } from 'rxjs/testing'
 import { ConfiguredExtension } from '../../../extensions/extension'
+import { EMPTY_SETTINGS_CASCADE, SettingsCascadeOrError } from '../../../settings/settings'
 import { isErrorLike } from '../../../util/errors'
 import { Environment } from '../environment'
-import { ExecutableExtension, ExtensionRegistry } from './extensions'
+import { ExecutableExtension, ExtensionsService } from './extensionsService'
 
 const scheduler = () => new TestScheduler((a, b) => assert.deepStrictEqual(a, b))
 
@@ -15,10 +16,11 @@ describe('activeExtensions', () => {
     it('emits an empty set', () =>
         scheduler().run(({ cold, expectObservable }) =>
             expectObservable(
-                new ExtensionRegistry(
-                    cold<Pick<Environment, 'configuration' | 'extensions' | 'visibleTextDocuments'>>('-a-|', {
-                        a: { configuration: { final: {}, subjects: [] }, extensions: [], visibleTextDocuments: [] },
+                new ExtensionsService(
+                    cold<Pick<Environment, 'extensions' | 'visibleTextDocuments'>>('-a-|', {
+                        a: { extensions: [], visibleTextDocuments: [] },
                     }),
+                    { data: cold<SettingsCascadeOrError>('-a-|', { a: EMPTY_SETTINGS_CASCADE }) },
                     noopExtensionActivationFilter
                 ).activeExtensions
             ).toBe('-a-|', {
@@ -29,31 +31,38 @@ describe('activeExtensions', () => {
     it('previously activated extensions remain activated when their activationEvents no longer match', () =>
         scheduler().run(({ cold, expectObservable }) =>
             expectObservable(
-                new ExtensionRegistry(
-                    cold<Pick<Environment, 'configuration' | 'extensions' | 'visibleTextDocuments'>>('-a-b-|', {
+                new ExtensionsService(
+                    cold<Pick<Environment, 'extensions' | 'visibleTextDocuments'>>('-a-b-|', {
                         a: {
-                            configuration: { final: { extensions: { x: true } }, subjects: [] },
                             extensions: [{ id: 'x', manifest: { url: 'u', activationEvents: [] }, rawManifest: null }],
                             visibleTextDocuments: [],
                         },
                         b: {
-                            configuration: { final: {}, subjects: [] },
-                            extensions: [{ id: 'x', manifest: { url: 'u', activationEvents: [] }, rawManifest: null }],
+                            extensions: [
+                                { id: 'x', manifest: { url: 'u', activationEvents: [] }, rawManifest: null },
+                                { id: 'y', manifest: { url: 'u', activationEvents: [] }, rawManifest: null },
+                            ],
                             visibleTextDocuments: [],
                         },
                     }),
-                    environment =>
+                    {
+                        data: cold<SettingsCascadeOrError>('-a-b-|', {
+                            a: { final: { extensions: { x: true } }, subjects: [] },
+                            b: { final: { extensions: { y: true } }, subjects: [] },
+                        }),
+                    },
+                    (environment, settings) =>
                         (environment.extensions || []).filter(
                             x =>
-                                environment.configuration.final &&
-                                !isErrorLike(environment.configuration.final) &&
-                                environment.configuration.final.extensions &&
-                                environment.configuration.final.extensions[x.id]
+                                settings.final &&
+                                !isErrorLike(settings.final) &&
+                                settings.final.extensions &&
+                                settings.final.extensions[x.id]
                         )
                 ).activeExtensions
             ).toBe('-a-b-|', {
                 a: [{ id: 'x', scriptURL: 'u' }],
-                b: [{ id: 'x', scriptURL: 'u' }],
+                b: [{ id: 'x', scriptURL: 'u' }, { id: 'y', scriptURL: 'u' }],
             } as Record<string, ExecutableExtension[]>)
         ))
 })

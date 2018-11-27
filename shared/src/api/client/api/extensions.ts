@@ -4,7 +4,7 @@ import { createProxyAndHandleRequests } from '../../common/proxy'
 import { ExtExtensionsAPI } from '../../extension/api/extensions'
 import { Connection } from '../../protocol/jsonrpc2/connection'
 import { isEqual } from '../../util'
-import { ExecutableExtension, ExtensionRegistry } from '../services/extensions'
+import { ExecutableExtension, ExtensionsService } from '../services/extensionsService'
 
 /** @internal */
 export class ClientExtensions {
@@ -18,7 +18,7 @@ export class ClientExtensions {
      * @param extensions An observable that emits the set of extensions that should be activated
      * upon subscription and whenever it changes.
      */
-    constructor(connection: Connection, extensionRegistry: ExtensionRegistry) {
+    constructor(connection: Connection, extensionRegistry: ExtensionsService) {
         this.proxy = createProxyAndHandleRequests('extensions', connection, this)
 
         this.subscriptions.add(

@@ -1,5 +1,4 @@
 import { ConfiguredExtension } from '../../extensions/extension'
-import { SettingsCascadeOrError } from '../../settings/settings'
 import { WorkspaceRoot } from '../protocol/plainTypes'
 import { TextDocumentItem } from './types/textDocument'
 
@@ -23,11 +22,8 @@ export interface Environment<X extends ConfiguredExtension = ConfiguredExtension
      */
     readonly visibleTextDocuments: TextDocumentItem[] | null
 
-    /** The active extensions, or null if there are none. */
+    /** The enabled extensions, or null if there are none. */
     readonly extensions: X[] | null
-
-    /** The settings cascade. */
-    readonly configuration: SettingsCascadeOrError
 }
 
 /** An empty Sourcegraph extension client environment. */
@@ -35,5 +31,4 @@ export const EMPTY_ENVIRONMENT: Environment<any> = {
     roots: null,
     visibleTextDocuments: null,
     extensions: null,
-    configuration: { final: {}, subjects: [] },
 }

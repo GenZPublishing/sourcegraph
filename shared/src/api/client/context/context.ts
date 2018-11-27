@@ -1,5 +1,5 @@
 import { basename, dirname, extname } from 'path'
-import { isSettingsValid } from '../../../settings/settings'
+import { isSettingsValid, SettingsCascadeOrError } from '../../../settings/settings'
 import { Environment } from '../environment'
 import { TextDocumentItem } from '../types/textDocument'
 
@@ -35,13 +35,14 @@ export interface Context {
  */
 export function getComputedContextProperty(
     environment: Environment,
+    settings: SettingsCascadeOrError,
     context: Context,
     key: string,
     scope?: TextDocumentItem
 ): any {
     if (key.startsWith('config.')) {
         const prop = key.slice('config.'.length)
-        const value = isSettingsValid(environment.configuration) ? environment.configuration.final[prop] : undefined
+        const value = isSettingsValid(settings) ? settings.final[prop] : undefined
         // Map undefined to null because an undefined value is treated as "does not exist in
         // context" and an error is thrown, which is undesirable for config values (for
         // which a falsey null default is useful).

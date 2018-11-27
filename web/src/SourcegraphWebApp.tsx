@@ -5,7 +5,7 @@ import * as React from 'react'
 import { Route } from 'react-router'
 import { BrowserRouter } from 'react-router-dom'
 import { combineLatest, from, Subscription } from 'rxjs'
-import { map, startWith } from 'rxjs/operators'
+import { startWith } from 'rxjs/operators'
 import { TextDocumentItem } from '../../shared/src/api/client/types/textDocument'
 import { WorkspaceRoot } from '../../shared/src/api/protocol/plainTypes'
 import {
@@ -17,7 +17,7 @@ import { viewerConfiguredExtensions } from '../../shared/src/extensions/helpers'
 import * as GQL from '../../shared/src/graphql/schema'
 import { Notifications } from '../../shared/src/notifications/Notifications'
 import { PlatformContextProps } from '../../shared/src/platform/context'
-import { SettingsCascadeProps } from '../../shared/src/settings/settings'
+import { EMPTY_SETTINGS_CASCADE, SettingsCascadeProps } from '../../shared/src/settings/settings'
 import { isErrorLike } from '../../shared/src/util/errors'
 import { authenticatedUser } from './auth'
 import { FeedbackText } from './components/FeedbackText'
@@ -105,7 +105,7 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
             navbarSearchQuery: '',
             platformContext,
             extensionsController: createExtensionsController(platformContext),
-            settingsCascade: platformContext.environment.value.configuration,
+            settingsCascade: EMPTY_SETTINGS_CASCADE,
             viewerSubject: SITE_SUBJECT_NO_ADMIN,
             isMainPage: false,
         }
@@ -125,34 +125,31 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
         )
 
         this.subscriptions.add(
-            combineLatest(
-                from(this.state.platformContext.environment).pipe(map(({ configuration }) => configuration)),
-                authenticatedUser.pipe(startWith(null))
-            ).subscribe(([cascade, authenticatedUser]) => {
-                this.setState(() => {
-                    if (authenticatedUser) {
-                        return { viewerSubject: authenticatedUser }
-                    } else if (
-                        cascade &&
-                        !isErrorLike(cascade) &&
-                        cascade.subjects &&
-                        !isErrorLike(cascade.subjects) &&
-                        cascade.subjects.length > 0
-                    ) {
-                        return { viewerSubject: cascade.subjects[0].subject }
-                    } else {
-                        return { viewerSubject: SITE_SUBJECT_NO_ADMIN }
-                    }
-                })
-            })
+            combineLatest(from(this.state.platformContext.settings), authenticatedUser.pipe(startWith(null))).subscribe(
+                ([cascade, authenticatedUser]) => {
+                    this.setState(() => {
+                        if (authenticatedUser) {
+                            return { viewerSubject: authenticatedUser }
+                        } else if (
+                            cascade &&
+                            !isErrorLike(cascade) &&
+                            cascade.subjects &&
+                            !isErrorLike(cascade.subjects) &&
+                            cascade.subjects.length > 0
+                        ) {
+                            return { viewerSubject: cascade.subjects[0].subject }
+                        } else {
+                            return { viewerSubject: SITE_SUBJECT_NO_ADMIN }
+                        }
+                    })
+                }
+            )
         )
 
         this.subscriptions.add(this.state.extensionsController)
 
         this.subscriptions.add(
-            from(this.state.platformContext.environment)
-                .pipe(map(({ configuration }) => configuration))
-                .subscribe(settingsCascade => this.setState({ settingsCascade }))
+            from(this.state.platformContext.settings).subscribe(settingsCascade => this.setState({ settingsCascade }))
         )
 
         // Keep the Sourcegraph extensions controller's extensions up-to-date.

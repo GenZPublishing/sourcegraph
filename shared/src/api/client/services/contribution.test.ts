@@ -1,8 +1,8 @@
 import * as assert from 'assert'
-import { Subscription } from 'rxjs'
 import { Observable, of } from 'rxjs'
+import { Subscription } from 'rxjs'
 import { TestScheduler } from 'rxjs/testing'
-import { ConfiguredExtension } from '../../../extensions/extension'
+import { EMPTY_SETTINGS_CASCADE, SettingsCascadeOrError } from '../../../settings/settings'
 import { ContributableMenu, Contributions } from '../../protocol'
 import { Context } from '../context/context'
 import { EMPTY_COMPUTED_CONTEXT } from '../context/expr/evaluator'
@@ -49,17 +49,16 @@ const FIXTURE_CONTRIBUTIONS_MERGED: Contributions = {
 }
 
 describe('ContributionRegistry', () => {
-    function create(env: Observable<Environment<ConfiguredExtension>> = of(EMPTY_ENVIRONMENT)): ContributionRegistry {
-        return new ContributionRegistry(env, of({}))
-    }
-
     it('is initially empty', () => {
-        assert.deepStrictEqual(create().entries.value, [])
+        assert.deepStrictEqual(
+            new ContributionRegistry(of(EMPTY_ENVIRONMENT), { data: of(EMPTY_SETTINGS_CASCADE) }, of({})).entries.value,
+            []
+        )
     })
 
     it('registers and unregisters contributions', () => {
         const subscriptions = new Subscription()
-        const registry = create()
+        const registry = new ContributionRegistry(of(EMPTY_ENVIRONMENT), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
         const entry1: ContributionsEntry = { contributions: FIXTURE_CONTRIBUTIONS_1 }
         const entry2: ContributionsEntry = { contributions: FIXTURE_CONTRIBUTIONS_2 }
 
@@ -77,7 +76,7 @@ describe('ContributionRegistry', () => {
     })
 
     it('replaces contributions', () => {
-        const registry = create()
+        const registry = new ContributionRegistry(of(EMPTY_ENVIRONMENT), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
         const entry1: ContributionsEntry = { contributions: FIXTURE_CONTRIBUTIONS_1 }
         const entry2: ContributionsEntry = { contributions: FIXTURE_CONTRIBUTIONS_2 }
 
@@ -102,7 +101,7 @@ describe('ContributionRegistry', () => {
                 ): Observable<Contributions> {
                     return super.getContributionsFromEntries(entries)
                 }
-            }(of(EMPTY_ENVIRONMENT), of({}))
+            }(of(EMPTY_ENVIRONMENT), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
             scheduler().run(({ cold, expectObservable }) =>
                 expectObservable(
                     registry.getContributionsFromEntries(
@@ -126,7 +125,7 @@ describe('ContributionRegistry', () => {
                 ): Observable<Contributions> {
                     return super.getContributionsFromEntries(entries)
                 }
-            }(of(EMPTY_ENVIRONMENT), of({}))
+            }(of(EMPTY_ENVIRONMENT), { data: of(EMPTY_SETTINGS_CASCADE) }, of({}))
             scheduler().run(({ cold, expectObservable }) =>
                 expectObservable(
                     registry.getContributionsFromEntries(
@@ -154,9 +153,15 @@ describe('ContributionRegistry', () => {
                     public constructor() {
                         super(
                             cold<Environment>('-a-b-|', {
-                                a: { ...EMPTY_ENVIRONMENT },
-                                b: { ...EMPTY_ENVIRONMENT },
+                                a: EMPTY_ENVIRONMENT,
+                                b: EMPTY_ENVIRONMENT,
                             }),
+                            {
+                                data: cold<SettingsCascadeOrError>('-a-b-|', {
+                                    a: EMPTY_SETTINGS_CASCADE,
+                                    b: EMPTY_SETTINGS_CASCADE,
+                                }),
+                            },
                             cold<Context>('-a-b-|', { a: { x: 1, y: 2 }, b: { x: 1, y: 1 } })
                         )
                     }
@@ -186,7 +191,11 @@ describe('ContributionRegistry', () => {
             scheduler().run(({ cold, expectObservable }) => {
                 const registry = new class extends ContributionRegistry {
                     public constructor() {
-                        super(cold<Environment>('a', { a: EMPTY_ENVIRONMENT }), cold<Context>('a', {}))
+                        super(
+                            cold<Environment>('a', { a: EMPTY_ENVIRONMENT }),
+                            { data: cold<SettingsCascadeOrError>('a', { a: EMPTY_SETTINGS_CASCADE }) },
+                            cold<Context>('a', {})
+                        )
                     }
 
                     public getContributionsFromEntries(

@@ -1,6 +1,6 @@
 import { isArray } from 'lodash-es'
 import { from, Subscription, throwError, Unsubscribable } from 'rxjs'
-import { map, switchMap, take } from 'rxjs/operators'
+import { switchMap, take } from 'rxjs/operators'
 import { CommandRegistry } from '../api/client/services/command'
 import { SettingsEdit } from '../api/client/services/settings'
 import { ActionContributionClientCommandUpdateConfiguration } from '../api/protocol'
@@ -13,7 +13,7 @@ import { isErrorLike } from '../util/errors'
  * documentation.
  */
 export function registerBuiltinClientCommands(
-    context: Pick<PlatformContext, 'environment' | 'updateSettings' | 'queryGraphQL' | 'queryLSP'>,
+    context: Pick<PlatformContext, 'settings' | 'updateSettings' | 'queryGraphQL' | 'queryLSP'>,
     commandRegistry: CommandRegistry
 ): Unsubscribable {
     const subscription = new Subscription()
@@ -111,15 +111,14 @@ export function urlForOpenPanel(viewID: string, urlHash: string): string {
  * Applies an edit to the settings of the highest-precedence subject.
  */
 export function updateConfiguration(
-    context: Pick<PlatformContext, 'environment' | 'updateSettings'>,
+    context: Pick<PlatformContext, 'settings' | 'updateSettings'>,
     edit: SettingsEdit
 ): Promise<void> {
     // TODO(sqs): Allow extensions to specify which subject's settings to update
     // (instead of always updating the highest-precedence subject's settings).
-    return from(context.environment)
+    return from(context.settings)
         .pipe(
             take(1),
-            map(({ configuration }) => configuration),
             switchMap(x => {
                 if (!x.subjects) {
                     return throwError(new Error('unable to update settings: no settings subjects available'))

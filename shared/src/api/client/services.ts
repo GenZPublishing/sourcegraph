@@ -3,7 +3,7 @@ import { createContextService } from './context/contextService'
 import { CommandRegistry } from './services/command'
 import { ContributionRegistry } from './services/contribution'
 import { TextDocumentDecorationProviderRegistry } from './services/decoration'
-import { ExtensionRegistry } from './services/extensions'
+import { ExtensionsService } from './services/extensionsService'
 import { TextDocumentHoverProviderRegistry } from './services/hover'
 import { TextDocumentLocationProviderRegistry, TextDocumentReferencesProviderRegistry } from './services/location'
 import { NotificationsService } from './services/notifications'
@@ -19,10 +19,14 @@ export class Services {
 
     public readonly commands = new CommandRegistry()
     public readonly context = createContextService()
-    public readonly contribution = new ContributionRegistry(this.platformContext.environment, this.context.data)
-    public readonly extensions = new ExtensionRegistry(this.platformContext.environment)
     public readonly notifications = new NotificationsService()
     public readonly settings = createSettingsService(this.platformContext)
+    public readonly contribution = new ContributionRegistry(
+        this.platformContext.environment,
+        this.settings,
+        this.context.data
+    )
+    public readonly extensions = new ExtensionsService(this.platformContext.environment, this.settings)
     public readonly textDocumentDefinition = new TextDocumentLocationProviderRegistry()
     public readonly textDocumentImplementation = new TextDocumentLocationProviderRegistry()
     public readonly textDocumentReferences = new TextDocumentReferencesProviderRegistry()

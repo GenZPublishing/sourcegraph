@@ -23,6 +23,7 @@ import { ComputedContext, evaluate, evaluateTemplate } from '../context/expr/eva
 import { TEMPLATE_BEGIN } from '../context/expr/lexer'
 import { Environment } from '../environment'
 import { TextDocumentItem } from '../types/textDocument'
+import { SettingsService } from './settings'
 
 /** A registered set of contributions from an extension in the registry. */
 export interface ContributionsEntry {
@@ -49,7 +50,11 @@ export class ContributionRegistry {
     /** All entries, including entries that are not enabled in the current context. */
     private _entries = new BehaviorSubject<ContributionsEntry[]>([])
 
-    public constructor(private environment: Subscribable<Environment>, private context: Subscribable<Context>) {}
+    public constructor(
+        private environment: Subscribable<Environment>,
+        private settingsService: Pick<SettingsService, 'data'>,
+        private context: Subscribable<Context>
+    ) {}
 
     /** Register contributions and return an unsubscribable that deregisters the contributions. */
     public registerContributions(entry: ContributionsEntry): ContributionUnsubscribable {
@@ -103,12 +108,13 @@ export class ContributionRegistry {
                 )
             ),
             this.environment,
+            this.settingsService.data,
             this.context
         ).pipe(
-            map(([multiContributions, environment, context]) => {
+            map(([multiContributions, environment, settings, context]) => {
                 // TODO(sqs): use {@link ContextService#observeValue}
                 const computedContext = {
-                    get: (key: string) => getComputedContextProperty(environment, context, key, scope),
+                    get: (key: string) => getComputedContextProperty(environment, settings, context, key, scope),
                 }
                 return flatten(multiContributions).map(contributions => {
                     try {

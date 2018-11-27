@@ -10,23 +10,22 @@ import { ConfiguredRegistryExtension, toConfiguredRegistryExtension } from './ex
 const LOADING: 'loading' = 'loading'
 
 export function viewerConfiguredExtensions({
-    environment,
+    settings,
     queryGraphQL,
-}: Pick<PlatformContext, 'environment' | 'queryGraphQL'>): Observable<ConfiguredRegistryExtension[]> {
-    return viewerConfiguredExtensionsOrLoading({ environment, queryGraphQL }).pipe(
+}: Pick<PlatformContext, 'settings' | 'queryGraphQL'>): Observable<ConfiguredRegistryExtension[]> {
+    return viewerConfiguredExtensionsOrLoading({ settings, queryGraphQL }).pipe(
         filter((extensions): extensions is ConfiguredRegistryExtension[] | ErrorLike => extensions !== LOADING),
         switchMap(extensions => (isErrorLike(extensions) ? throwError(extensions) : [extensions]))
     )
 }
 
 function viewerConfiguredExtensionsOrLoading({
-    environment,
+    settings,
     queryGraphQL,
-}: Pick<PlatformContext, 'environment' | 'queryGraphQL'>): Observable<
+}: Pick<PlatformContext, 'settings' | 'queryGraphQL'>): Observable<
     typeof LOADING | ConfiguredRegistryExtension[] | ErrorLike
 > {
-    return from(environment).pipe(
-        map(({ configuration }) => configuration),
+    return from(settings).pipe(
         distinctUntilChanged(),
         switchMap(
             cascade =>

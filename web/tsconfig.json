@@ -4,6 +4,10 @@
     "typeRoots": ["../node_modules/@types", "src/types"],
     "jsx": "react"
   },
-  "include": ["**/*"],
+  "include": [
+    "**/*",
+    "../shared/src/api/client/services/extensionsService.test.ts",
+    "../shared/src/api/client/services/extensionsService.ts"
+  ],
   "exclude": ["../node_modules"]
 }

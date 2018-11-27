@@ -19,7 +19,6 @@ const FIXTURE_ENVIRONMENT: Environment = {
         },
     ],
     extensions: [{ id: 'x', manifest: null, rawManifest: null }],
-    configuration: { final: { a: 1 }, subjects: [] },
 }
 
 interface TestContext {

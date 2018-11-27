@@ -19,7 +19,7 @@ export function createPlatformContext(): PlatformContext {
     sourcegraphLanguageServerURL.pathname = '.api/xlang'
 
     const context: PlatformContext = {
-        settingsCascade,
+        settings: settingsCascade, // TODO!(sqs): rename to settings, remove global observable (probably)
         updateSettings: async (subject, edit) => {
             try {
                 await updateSettings(

@@ -1,13 +1,13 @@
 import * as assert from 'assert'
 import { BehaviorSubject, of } from 'rxjs'
-import { SettingsCascadeOrError } from '../../settings/settings'
+import { EMPTY_SETTINGS_CASCADE, SettingsCascadeOrError } from '../../settings/settings'
 import { SettingsEdit } from '../client/services/settings'
 import { assertToJSON } from '../extension/types/common.test'
 import { integrationTestContext } from './helpers.test'
 
 describe('Configuration (integration)', () => {
     it('is synchronously available', async () => {
-        const { extensionHost } = await integrationTestContext({ settings: of({ final: {}, subjects: [] }) })
+        const { extensionHost } = await integrationTestContext({ settings: of(EMPTY_SETTINGS_CASCADE) })
         assert.doesNotThrow(() => extensionHost.configuration.subscribe(() => void 0))
         assert.doesNotThrow(() => extensionHost.configuration.get())
     })
@@ -43,14 +43,14 @@ describe('Configuration (integration)', () => {
 
     describe('configuration.subscribe', () => {
         it('subscribes to changes', async () => {
-            const mockSettings = new BehaviorSubject<SettingsCascadeOrError>({ final: {}, subjects: [] })
+            const mockSettings = new BehaviorSubject<SettingsCascadeOrError>(EMPTY_SETTINGS_CASCADE)
             const { extensionHost } = await integrationTestContext({ settings: mockSettings })
 
             let calls = 0
             extensionHost.configuration.subscribe(() => calls++)
             assert.strictEqual(calls, 1) // called initially
 
-            mockSettings.next({ final: {}, subjects: [] })
+            mockSettings.next(EMPTY_SETTINGS_CASCADE)
             await extensionHost.internal.sync()
             assert.strictEqual(calls, 2)
         })

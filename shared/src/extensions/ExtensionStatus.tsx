@@ -3,6 +3,7 @@ import * as H from 'history'
 import * as React from 'react'
 import { Subject, Subscription } from 'rxjs'
 import { distinctUntilChanged, map, switchMap } from 'rxjs/operators'
+import { ExecutableExtension } from '../api/client/services/extensionsService'
 import { PopoverButton } from '../components/PopoverButton'
 import { Toggle } from '../components/Toggle'
 import { ExtensionsControllerProps } from '../extensions/controller'
@@ -14,7 +15,7 @@ interface Props extends ExtensionsControllerProps, PlatformContextProps {
 
 interface State {
     /** The extension IDs of extensions that are active, or undefined while loading. */
-    extensions?: { id: string }[]
+    extensions?: Pick<ExecutableExtension, 'id'>[]
 
     /** Whether to log traces of communication with extensions. */
     traceExtensionHostCommunication?: boolean

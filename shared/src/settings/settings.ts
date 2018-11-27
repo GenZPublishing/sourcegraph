@@ -90,6 +90,8 @@ export interface SettingsCascadeOrError<S extends Settings = Settings> {
     final: S | ErrorLike | null
 }
 
+export const EMPTY_SETTINGS_CASCADE: SettingsCascadeOrError = { final: {}, subjects: [] }
+
 /**
  * A subject and its settings.
  *

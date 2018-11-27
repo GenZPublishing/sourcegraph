@@ -7,7 +7,7 @@ import { PlatformContext } from '../platform/context'
 import { isErrorLike } from '../util/errors'
 
 export function updateSettings(
-    { environment, queryGraphQL }: Pick<PlatformContext, 'environment' | 'queryGraphQL'>,
+    { settings, queryGraphQL }: Pick<PlatformContext, 'settings' | 'queryGraphQL'>,
     subject: GQL.ID,
     args: SettingsEdit,
     applySettingsEdit: (
@@ -17,11 +17,9 @@ export function updateSettings(
         edit: GQL.ISettingsEdit
     ) => Promise<void>
 ): Promise<void> {
-    return from(environment)
+    return from(settings)
         .pipe(
             take(1),
-            // TODO!(sqs): rename configuration -> settingsCascade
-            map(({ configuration }) => configuration),
             switchMap(settingsCascade => {
                 if (!settingsCascade.subjects) {
                     throw new Error('settings not available')
