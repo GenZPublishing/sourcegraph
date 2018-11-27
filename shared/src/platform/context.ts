@@ -19,12 +19,16 @@ export interface PlatformContext {
     readonly environment: Subscribable<Environment> & { value: Environment } & NextObserver<Environment>
 
     /**
-     * Query the settings cascade.
+     * An observable that emits the settings cascade upon subscription and whenever it changes (including when it
+     * changed as a result of a call to {@link PlatformContext#updateSettings}).
      */
-    querySettings<S extends Settings>(): Promise<SettingsCascadeOrError<S>>
+    readonly settings: Subscribable<SettingsCascadeOrError<Settings>>
 
     /**
      * Update the settings for the subject.
+     *
+     * TODO!(sqs): make this return an observable that emits twice (by convention): once immediately with the
+     * optimistic new value, and once when it is acked by the server (then completes).
      */
     updateSettings(subject: GQL.ID, edit: SettingsEdit): Promise<void>
 

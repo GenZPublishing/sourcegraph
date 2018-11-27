@@ -35,14 +35,6 @@ export interface SettingsService<S extends Settings = Settings> {
      * @todo Support specifying which settings subject whose settings to update.
      */
     update(edit: SettingsUpdate): Promise<void>
-
-    /**
-     * Refresh the settings cascade.
-     *
-     * This should be called when the settings change by any means other than a call to
-     * {@link SettingsService#update}.
-     */
-    refresh(): Promise<void>
 }
 
 /**
@@ -51,9 +43,9 @@ export interface SettingsService<S extends Settings = Settings> {
  * @template S The settings type.
  */
 export function createSettingsService<S extends Settings = Settings>({
-    querySettings,
+    settings,
     updateSettings,
-}: Pick<PlatformContext, 'querySettings' | 'updateSettings'>): SettingsService<S> {
+}: Pick<PlatformContext, 'settings' | 'updateSettings'>): SettingsService<S> {
     // TODO!(sqs): weird behavior if this is null when it's attempted to be used?
     const data = new BehaviorSubject<SettingsCascadeOrError<S>>({ subjects: null, final: null })
     return {
@@ -65,8 +57,6 @@ export function createSettingsService<S extends Settings = Settings>({
             }
             const subject = settings.subjects[settings.subjects.length - 1]
             await updateSettings(subject.subject.id, { edit })
-            data.next(await querySettings<S>())
         },
-        refresh: async () => data.next(await querySettings<S>()),
     }
 }

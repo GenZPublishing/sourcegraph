@@ -1,9 +1,10 @@
-import { BehaviorSubject, Observable } from 'rxjs'
+import { BehaviorSubject, merge, Observable, ReplaySubject } from 'rxjs'
 import { map, startWith, switchMap } from 'rxjs/operators'
 import ExtensionHostWorker from 'worker-loader!../../../shared/src/api/extension/main.worker.ts'
 import { EMPTY_ENVIRONMENT, Environment } from '../../../shared/src/api/client/environment'
 import { createWebWorkerMessageTransports } from '../../../shared/src/api/protocol/jsonrpc2/transports/webWorker'
 import { gql } from '../../../shared/src/graphql/graphql'
+import * as GQL from '../../../shared/src/graphql/schema'
 import { PlatformContext } from '../../../shared/src/platform/context'
 import { mutateSettings, updateSettings } from '../../../shared/src/settings/edit'
 import { gqlToCascade } from '../../../shared/src/settings/settings'
@@ -19,16 +20,18 @@ import { LocalStorageSubject } from '../util/LocalStorageSubject'
 export function createPlatformContext(): PlatformContext {
     // TODO!(sqs): clean up, remove redundant settingsCascade and environment
     const environment = new BehaviorSubject<Environment>(EMPTY_ENVIRONMENT)
-    settingsRefreshes
-        .pipe(
-            startWith(null),
-            switchMap(() => fetchViewerSettings()),
-            map(gqlToCascade)
-        )
-        .subscribe(configuration => environment.next({ ...environment.value, configuration }))
+
+    const updatedSettings = new ReplaySubject<GQL.ISettingsCascade>(1)
 
     const context: PlatformContext = {
         environment,
+        settings: merge(
+            settingsRefreshes.pipe(
+                startWith(void 0),
+                switchMap(() => fetchViewerSettings())
+            ),
+            updatedSettings
+        ).pipe(map(gqlToCascade)),
         updateSettings: async (subject, edit) => {
             // Unauthenticated users can't update settings. (In the browser extension, they can update client
             // settings even when not authenticated. The difference in behavior in the web app vs. browser
@@ -45,11 +48,8 @@ export function createPlatformContext(): PlatformContext {
                 )
             }
 
-            try {
-                await updateSettings(context, subject, edit, mutateSettings)
-            } finally {
-                settingsRefreshes.next()
-            }
+            await updateSettings(context, subject, edit, mutateSettings)
+            updatedSettings.next(await fetchViewerSettings().toPromise())
         },
         queryGraphQL: (request, variables) =>
             requestGraphQL(
